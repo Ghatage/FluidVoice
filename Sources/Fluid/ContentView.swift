@@ -1325,7 +1325,8 @@ struct ContentView: View {
         case let .transcript(id):
             FileTranscriptionHistoryStore.shared.selectedEntryID = id
             self.navigateToApp(.meetingTools)
-        case .chat:
+        case let .chat(id):
+            self.commandModeService.switchToChat(id: id)
             self.navigateToApp(.commandMode)
         case .dictionaryEntry, .vocabulary, .punctuation:
             self.navigateToApp(.customDictionary)

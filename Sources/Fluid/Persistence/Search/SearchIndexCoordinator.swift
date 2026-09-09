@@ -35,7 +35,10 @@ final class SearchIndexCoordinator {
                 self.pending[kind] = Task { [index] in
                     await previous?.value
                     do {
-                        try await index.reconcile(kind, with: records)
+                        let report = try await index.reconcile(kind, with: records)
+                        if report != SearchIndex.ReconcileReport() {
+                            AppSearchService.shared.refresh()
+                        }
                     } catch {
                         DebugLogger.shared.error(
                             "Search index \(kind.rawValue) reconcile failed: \(error)",
