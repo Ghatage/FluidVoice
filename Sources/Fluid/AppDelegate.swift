@@ -48,6 +48,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         SettingsStore.shared.bootstrapOnboardingState(isTrueFirstOpen: isTrueFirstOpen)
 
         AnalyticsService.shared.bootstrap()
+        SearchIndexCoordinator.shared.start()
 
         // Check for updates automatically if enabled (initial check on launch)
         self.checkForUpdatesAutomatically()

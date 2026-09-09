@@ -59,6 +59,7 @@ struct MeetingTranscriptionView: View {
             .padding(.bottom, 30)
 
             // Main Content Area
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 24) {
                     // File Selection Card
@@ -92,6 +93,10 @@ struct MeetingTranscriptionView: View {
                     }
                 }
                 .padding(24)
+            }
+            // A row chosen by the sidebar search is scrolled into view.
+            .onAppear { self.fileHistoryStore.selectedEntryID.map { proxy.scrollTo($0) } }
+            .onChange(of: self.fileHistoryStore.selectedEntryID) { _, id in id.map { proxy.scrollTo($0) } }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -445,6 +450,7 @@ struct MeetingTranscriptionView: View {
             VStack(spacing: 8) {
                 ForEach(self.fileHistoryStore.entries) { entry in
                     self.recentEntryRow(entry: entry)
+                        .id(entry.id)
                 }
             }
 
