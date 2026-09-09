@@ -76,7 +76,7 @@ final class SettingsNavigationStateTests: XCTestCase {
         XCTAssertTrue(window.makeFirstResponder(searchField))
         XCTAssertNotNil(searchField.currentEditor())
 
-        SettingsSearchField.resignFocusIfNeeded(from: searchField, isActive: false)
+        SidebarSearchField.resignFocusIfNeeded(from: searchField, isActive: false)
 
         XCTAssertNil(searchField.currentEditor())
     }
