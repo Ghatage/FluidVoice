@@ -84,6 +84,11 @@ final class AppSearchService: ObservableObject {
         self.index = index
     }
 
+    /// Re-runs the current query. Called when the index changes under it.
+    func refresh() {
+        self.schedule()
+    }
+
     private func schedule() {
         self.task?.cancel()
         if let token = self.token {
