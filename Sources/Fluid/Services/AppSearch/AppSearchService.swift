@@ -100,6 +100,7 @@ final class AppSearchService: ObservableObject {
             self.groups = []
             return
         }
+        self.groups = []
         self.task = Task { [weak self] in
             try? await Task.sleep(for: Self.debounce)
             guard !Task.isCancelled, let self else { return }
@@ -279,7 +280,7 @@ final class AppSearchService: ObservableObject {
     }
 
     private func settingsGroup(_ query: String) -> AppSearchGroup {
-        let hits = SettingsSearchIndex.results(for: query).map { result in
+        let hits = SettingsSearchIndex.results(for: query, availability: .current).map { result in
             AppSearchHit(
                 kind: .settings,
                 target: .settings(result.target),

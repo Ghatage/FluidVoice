@@ -1450,24 +1450,16 @@ struct ContentView: View {
     }
 
     private func availableSettingsSearchResults(for query: String) -> [SettingsSearchResult] {
-        SettingsSearchIndex.results(for: query)
-            .filter { self.isSettingsSearchTargetAvailable($0.target) }
-    }
-
-    private func isSettingsSearchTargetAvailable(_ target: SettingsSearchTarget) -> Bool {
-        switch target {
-        case .microphonePermission:
-            return self.asr.micStatus != .authorized
-        case .accessibilityPermission:
-            return !self.accessibilityEnabled
-        case .audioStorage:
-            return SettingsStore.shared.saveTranscriptionHistory &&
-                SettingsStore.shared.saveAudioWithTranscriptionHistory
-        case .bottomOffset:
-            return self.settings.overlayPosition == .bottom
-        default:
-            return true
-        }
+        SettingsSearchIndex.results(
+            for: query,
+            availability: SettingsSearchAvailability(
+                microphoneAuthorized: self.asr.micStatus == .authorized,
+                accessibilityEnabled: self.accessibilityEnabled,
+                savesTranscriptionHistory: SettingsStore.shared.saveTranscriptionHistory,
+                savesAudioWithTranscriptionHistory: SettingsStore.shared.saveAudioWithTranscriptionHistory,
+                overlayAtBottom: self.settings.overlayPosition == .bottom
+            )
+        )
     }
 
     private var settingsEntryButton: some View {
