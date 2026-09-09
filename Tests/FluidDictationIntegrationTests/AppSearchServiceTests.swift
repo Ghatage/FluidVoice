@@ -52,6 +52,28 @@ final class AppSearchServiceTests: XCTestCase {
         XCTAssertTrue(service.groups.isEmpty)
     }
 
+    func testChangingQueryImmediatelyInvalidatesPublishedResults() async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("AppSearchServiceTests-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let service = AppSearchService(index: SearchIndex(root: FluidZeppelinRoot(root: root)))
+
+        service.query = "launch at startup"
+        try await Task.sleep(for: .milliseconds(600))
+        XCTAssertFalse(service.groups.isEmpty)
+
+        service.query = "accent color"
+
+        XCTAssertTrue(service.groups.isEmpty)
+    }
+
+    func testTranscriptSearchSelectionTargetsItsDetailCard() {
+        let id = UUID()
+
+        XCTAssertEqual(MeetingTranscriptionScrollTarget.selectedDetail(id), .detail(id))
+        XCTAssertNil(MeetingTranscriptionScrollTarget.selectedDetail(nil))
+    }
+
     // MARK: - Snippets
 
     func testSnippetMarksEveryQueryWordIncludingByPrefix() {

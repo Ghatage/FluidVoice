@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import AVFoundation
 import Foundation
 import SwiftUI
 
@@ -147,6 +148,40 @@ struct SettingsSearchResult: Identifiable, Equatable {
 
     var section: SettingsSection {
         self.target.section
+    }
+}
+
+struct SettingsSearchAvailability {
+    let microphoneAuthorized: Bool
+    let accessibilityEnabled: Bool
+    let savesTranscriptionHistory: Bool
+    let savesAudioWithTranscriptionHistory: Bool
+    let overlayAtBottom: Bool
+
+    static var current: Self {
+        let settings = SettingsStore.shared
+        return Self(
+            microphoneAuthorized: AVCaptureDevice.authorizationStatus(for: .audio) == .authorized,
+            accessibilityEnabled: AXIsProcessTrusted(),
+            savesTranscriptionHistory: settings.saveTranscriptionHistory,
+            savesAudioWithTranscriptionHistory: settings.saveAudioWithTranscriptionHistory,
+            overlayAtBottom: settings.overlayPosition == .bottom
+        )
+    }
+
+    func includes(_ target: SettingsSearchTarget) -> Bool {
+        switch target {
+        case .microphonePermission:
+            return !self.microphoneAuthorized
+        case .accessibilityPermission:
+            return !self.accessibilityEnabled
+        case .audioStorage:
+            return self.savesTranscriptionHistory && self.savesAudioWithTranscriptionHistory
+        case .bottomOffset:
+            return self.overlayAtBottom
+        default:
+            return true
+        }
     }
 }
 
@@ -387,6 +422,13 @@ enum SettingsSearchIndex {
             return lhs.result.score > rhs.result.score
         }
         .map(\.result)
+    }
+
+    static func results(
+        for query: String,
+        availability: SettingsSearchAvailability
+    ) -> [SettingsSearchResult] {
+        self.results(for: query).filter { availability.includes($0.target) }
     }
 
     static func title(for target: SettingsSearchTarget) -> String {

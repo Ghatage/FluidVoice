@@ -169,4 +169,30 @@ final class SettingsNavigationStateTests: XCTestCase {
         )
         XCTAssertEqual(SettingsSearchIndex.preferredSection(current: .audio, results: []), .audio)
     }
+
+    func testSettingsSearchOmitsTargetsUnavailableInTheCurrentState() {
+        let availability = SettingsSearchAvailability(
+            microphoneAuthorized: true,
+            accessibilityEnabled: true,
+            savesTranscriptionHistory: false,
+            savesAudioWithTranscriptionHistory: false,
+            overlayAtBottom: false
+        )
+
+        let permissionTargets = SettingsSearchIndex.results(
+            for: "permission",
+            availability: availability
+        ).map(\.target)
+
+        XCTAssertFalse(permissionTargets.contains(.microphonePermission))
+        XCTAssertFalse(permissionTargets.contains(.accessibilityPermission))
+        XCTAssertFalse(SettingsSearchIndex.results(
+            for: "audio storage",
+            availability: availability
+        ).contains { $0.target == .audioStorage })
+        XCTAssertFalse(SettingsSearchIndex.results(
+            for: "bottom offset",
+            availability: availability
+        ).contains { $0.target == .bottomOffset })
+    }
 }
