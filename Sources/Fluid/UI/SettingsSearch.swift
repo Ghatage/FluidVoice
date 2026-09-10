@@ -175,8 +175,27 @@ struct SettingsSearchAvailability {
             return !self.microphoneAuthorized
         case .accessibilityPermission:
             return !self.accessibilityEnabled
+        case .primaryDictationShortcuts,
+             .commandModeShortcut,
+             .editModeShortcut,
+             .cancelRecordingShortcut,
+             .pasteLastTranscriptionShortcut,
+             .activationMode,
+             .copyToClipboard,
+             .textInsertionMode,
+             .spokenSend,
+             .transcriptionHistory,
+             .audioHistory,
+             .usageStreak,
+             .skipSilentRecordings,
+             .pauseMedia,
+             .dictionarySuggestions,
+             .analyticsPrivacy:
+            return self.accessibilityEnabled
         case .audioStorage:
-            return self.savesTranscriptionHistory && self.savesAudioWithTranscriptionHistory
+            return self.accessibilityEnabled &&
+                self.savesTranscriptionHistory &&
+                self.savesAudioWithTranscriptionHistory
         case .bottomOffset:
             return self.overlayAtBottom
         default:

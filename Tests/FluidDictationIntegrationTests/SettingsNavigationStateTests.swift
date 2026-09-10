@@ -195,4 +195,41 @@ final class SettingsNavigationStateTests: XCTestCase {
             availability: availability
         ).contains { $0.target == .bottomOffset })
     }
+
+    func testSettingsSearchOmitsControlsHiddenWithoutAccessibility() {
+        let availability = SettingsSearchAvailability(
+            microphoneAuthorized: true,
+            accessibilityEnabled: false,
+            savesTranscriptionHistory: true,
+            savesAudioWithTranscriptionHistory: true,
+            overlayAtBottom: true
+        )
+        let gatedTargets: [(SettingsSearchTarget, String)] = [
+            (.primaryDictationShortcuts, "primary dictation shortcuts"),
+            (.commandModeShortcut, "command mode shortcut"),
+            (.editModeShortcut, "edit mode shortcut"),
+            (.cancelRecordingShortcut, "cancel recording shortcut"),
+            (.pasteLastTranscriptionShortcut, "paste last transcription shortcut"),
+            (.activationMode, "activation mode"),
+            (.copyToClipboard, "copy to clipboard"),
+            (.textInsertionMode, "text insertion mode"),
+            (.spokenSend, "spoken send"),
+            (.transcriptionHistory, "save transcription history"),
+            (.audioHistory, "save audio with history"),
+            (.audioStorage, "audio storage"),
+            (.usageStreak, "usage streak"),
+            (.skipSilentRecordings, "skip silent recordings"),
+            (.pauseMedia, "pause media during transcription"),
+            (.dictionarySuggestions, "dictionary suggestions"),
+            (.analyticsPrivacy, "detailed anonymous analytics"),
+        ]
+
+        for (target, query) in gatedTargets {
+            XCTAssertFalse(
+                SettingsSearchIndex.results(for: query, availability: availability)
+                    .contains { $0.target == target },
+                "\(target) is not rendered without Accessibility permission"
+            )
+        }
+    }
 }
