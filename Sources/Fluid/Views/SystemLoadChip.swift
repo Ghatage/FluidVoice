@@ -10,7 +10,9 @@ import SwiftUI
 struct SystemLoadChip: View {
     let fontSize: CGFloat
 
-    static func height(for fontSize: CGFloat) -> CGFloat { fontSize + 10 }
+    static func height(for fontSize: CGFloat) -> CGFloat {
+        fontSize + 10
+    }
 
     var body: some View {
         Label("Mac is low on memory · cleanup may be slower", systemImage: "memorychip")

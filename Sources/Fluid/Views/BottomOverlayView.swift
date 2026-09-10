@@ -2451,7 +2451,8 @@ struct BottomOverlayView: View {
     }
 
     private var showsSystemLoadChip: Bool {
-        self.settings.showSystemLoadAlerts && self.memoryPressure.isConstrained
+        // The 100 pt pill has no room for a readable chip.
+        self.layout.showsPreview && self.settings.showSystemLoadAlerts && self.memoryPressure.isConstrained
     }
 
     private var overlayFrameHeight: CGFloat? {

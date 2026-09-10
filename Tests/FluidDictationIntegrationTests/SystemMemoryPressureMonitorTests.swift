@@ -18,12 +18,13 @@ final class MemoryPressureEvaluatorTests: XCTestCase {
         XCTAssertFalse(self.run([48]))
         XCTAssertFalse(self.run([48, 70, 49]))
         XCTAssertTrue(self.run([48, 46]))
-        // 55 sits inside the band: neither counts nor resets.
-        XCTAssertTrue(self.run([48, 55, 49]))
+        // An in-band sample breaks the streak while not yet constrained.
+        XCTAssertFalse(self.run([48, 55, 49]))
     }
 
     func testClearsOnlyAtExitThreshold() {
         XCTAssertTrue(self.run([48, 46, 59]))
+        XCTAssertTrue(self.run([48, 46, 55, 55]))
         XCTAssertFalse(self.run([48, 46, 60]))
     }
 }

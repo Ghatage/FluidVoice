@@ -25,7 +25,9 @@ nonisolated struct MemoryPressureEvaluator {
     mutating func observe(availablePercent percent: Int) {
         if percent <= self.enterPercent {
             self.lowStreak += 1
-        } else if percent >= self.exitPercent {
+        } else if !self.isConstrained || percent >= self.exitPercent {
+            // Any non-low sample breaks the streak; while constrained, the band below
+            // `exitPercent` keeps it so the chip does not flicker.
             self.lowStreak = 0
         }
         // Two consecutive low samples to enter; stay until memory rises to `exitPercent`.
@@ -77,7 +79,7 @@ final class SystemMemoryPressureMonitor: ObservableObject {
 
     /// For diagnostics log lines, read fresh from the kernel.
     nonisolated static func diagnosticsSummary() -> String {
-        "sysAvailMem=\(Self.readAvailableMemoryPercent().map { "\($0)%" } ?? "?")"
+        "sysAvailMem=\(self.readAvailableMemoryPercent().map { "\($0)%" } ?? "?")"
     }
 
     /// `kern.memorystatus_level`: percent of RAM that is neither wired nor compressed.
