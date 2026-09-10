@@ -64,8 +64,8 @@ extension FileTranscriptionEntry {
 
 extension ChatSession {
     /// One record per session. Message ids are regenerated every time a chat is
-    /// reloaded, so they cannot be keys; the session id is stable and `updatedAt`
-    /// rises on every save, which is what the revision needs.
+    /// reloaded, so they cannot be keys; the session id is stable and the persisted
+    /// search revision rises on every save regardless of wall-clock corrections.
     ///
     /// Returns `nil` when the session id is not a UUID, which the store never
     /// produces but a hand-edited defaults file could.
@@ -80,7 +80,7 @@ extension ChatSession {
         }
         return SearchIndexRecord(
             id: id,
-            revision: UInt64(max(1, self.updatedAt.timeIntervalSince1970 * 1000)),
+            revision: self.searchRevision ?? UInt64(max(1, self.updatedAt.timeIntervalSince1970 * 1000)),
             timestamp: self.updatedAt,
             text: SearchIndexRecord.joined(parts)
         )

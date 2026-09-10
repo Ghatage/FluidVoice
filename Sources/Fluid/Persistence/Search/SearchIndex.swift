@@ -64,9 +64,8 @@ actor SearchIndex {
                 pending.append(record)
                 continue
             }
-            // Equal: already indexed. Higher: written under a clock that has since
-            // gone backward; kept until its next real update, because a lower
-            // revision cannot replace a higher one.
+            // Equal: already indexed. Higher: a newer snapshot has already won,
+            // so reconciliation must not replace it with stale input.
             if revision < record.revision {
                 pending.append(record)
             }
