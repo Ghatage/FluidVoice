@@ -2898,10 +2898,15 @@ struct ContentView: View {
             source: "ContentView"
         )
 
-        // A focused text field in our own window (the sidebar search box) gets the
-        // text through its field editor, which also fires its change notifications.
+        // A sidebar search field that was already focused when recording began gets
+        // the text through its field editor, which also fires change notifications.
         if isFluidFrontmost, shouldPersistOutputs, !sendsExistingDraft,
-           let editor = NSApp.keyWindow?.firstResponder as? NSTextView, editor.isFieldEditor
+           let focusTarget = self.recordingFocusTarget,
+           focusTarget.pid == ProcessInfo.processInfo.processIdentifier,
+           TypingService.isExactFocusTargetActive(focusTarget),
+           let window = NSApp.keyWindow,
+           let editor = window.firstResponder as? NSTextView,
+           SidebarSearchField.owns(editor, in: window)
         {
             editor.insertText(finalText, replacementRange: editor.selectedRange())
         }

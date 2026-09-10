@@ -597,6 +597,8 @@ enum SettingsSearchIndex {
 /// (`Notification.Name.sidebarSearchFocusRequested`) focuses whichever instance
 /// is active.
 struct SidebarSearchField: NSViewRepresentable {
+    private static let identifier = NSUserInterfaceItemIdentifier("FluidVoice.SidebarSearchField")
+
     @Binding var text: String
     let placeholder: String
     let isActive: Bool
@@ -614,6 +616,7 @@ struct SidebarSearchField: NSViewRepresentable {
         searchField.sendsWholeSearchString = false
         searchField.controlSize = .regular
         searchField.focusRingType = .default
+        searchField.identifier = Self.identifier
         searchField.setAccessibilityLabel(self.placeholder)
         context.coordinator.observeFocusRequests(for: searchField)
         return searchField
@@ -634,6 +637,21 @@ struct SidebarSearchField: NSViewRepresentable {
         else { return }
 
         window.makeFirstResponder(nil)
+    }
+
+    static func owns(_ editor: NSTextView, in window: NSWindow) -> Bool {
+        guard editor.isFieldEditor, let contentView = window.contentView else { return false }
+        var views = [contentView]
+        while let view = views.popLast() {
+            if let searchField = view as? NSSearchField,
+               searchField.identifier == Self.identifier,
+               searchField.currentEditor() === editor
+            {
+                return true
+            }
+            views.append(contentsOf: view.subviews)
+        }
+        return false
     }
 
     final class Coordinator: NSObject, NSSearchFieldDelegate {

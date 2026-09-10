@@ -149,6 +149,10 @@ struct TranscriptionHistoryView: View {
         guard let id else { return }
         if !self.filteredEntries.contains(where: { $0.id == id }) {
             self.searchQuery = ""
+            DispatchQueue.main.async {
+                proxy.scrollTo(id)
+            }
+            return
         }
         proxy.scrollTo(id)
     }
