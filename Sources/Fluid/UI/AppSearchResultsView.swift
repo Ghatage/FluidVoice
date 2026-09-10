@@ -21,37 +21,42 @@ struct AppSearchResultsView: View {
     }
 
     var body: some View {
-        List {
-            if self.service.groups.isEmpty {
-                Text("No results")
-                    .font(self.theme.typography.sidebarItem)
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, self.theme.metrics.spacing.md)
-            }
-            ForEach(self.service.groups) { group in
-                Section {
-                    let shown = self.expanded.contains(group.kind) ? group.hits : Array(group.hits.prefix(Self.rowsPerGroup))
-                    ForEach(shown) { hit in
-                        self.row(hit)
-                    }
-                    if group.hits.count > shown.count {
-                        Button("\(group.hits.count - shown.count) more…") {
-                            self.expanded.insert(group.kind)
-                        }
-                        .buttonStyle(.plain)
+        ScrollViewReader { proxy in
+            List {
+                if self.service.groups.isEmpty {
+                    Text("No results")
                         .font(self.theme.typography.sidebarItem)
-                        .foregroundStyle(self.theme.palette.accent)
-                        .padding(.vertical, self.theme.metrics.spacing.xs / 2)
-                    }
-                } header: {
-                    Text(group.kind.title)
-                        .font(self.theme.typography.sidebarSection)
                         .foregroundStyle(.secondary)
+                        .padding(.horizontal, self.theme.metrics.spacing.md)
+                }
+                ForEach(self.service.groups) { group in
+                    Section {
+                        let shown = self.expanded.contains(group.kind) ? group.hits : Array(group.hits.prefix(Self.rowsPerGroup))
+                        ForEach(shown) { hit in
+                            self.row(hit)
+                        }
+                        if group.hits.count > shown.count {
+                            Button("\(group.hits.count - shown.count) more…") {
+                                self.expanded.insert(group.kind)
+                            }
+                            .buttonStyle(.plain)
+                            .font(self.theme.typography.sidebarItem)
+                            .foregroundStyle(self.theme.palette.accent)
+                            .padding(.vertical, self.theme.metrics.spacing.xs / 2)
+                        }
+                    } header: {
+                        Text(group.kind.title)
+                            .font(self.theme.typography.sidebarSection)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            .listStyle(.sidebar)
+            .accentColor(self.theme.palette.accent)
+            .onChange(of: self.cursor) { _, target in
+                target.map { proxy.scrollTo($0) }
+            }
         }
-        .listStyle(.sidebar)
-        .accentColor(self.theme.palette.accent)
     }
 
     private func row(_ hit: AppSearchHit) -> some View {
