@@ -2075,6 +2075,7 @@ struct BottomOverlayView: View {
     @ObservedObject private var appServices = AppServices.shared
     @ObservedObject private var activeAppMonitor = ActiveAppMonitor.shared
     @ObservedObject private var historyStore = TranscriptionHistoryStore.shared
+    @ObservedObject private var memoryPressure = SystemMemoryPressureMonitor.shared
     @ObservedObject private var settings = SettingsStore.shared
     @Environment(\.theme) private var theme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -2449,9 +2450,14 @@ struct BottomOverlayView: View {
             (self.settings.enableStreamingPreview || self.contentState.isAIProcessingFailureVisible)
     }
 
+    private var showsSystemLoadChip: Bool {
+        self.settings.showSystemLoadAlerts && self.memoryPressure.isConstrained
+    }
+
     private var overlayFrameHeight: CGFloat? {
-        guard self.layout.usesFixedCanvas else { return nil }
-        return self.shouldReservePreviewArea ? self.layout.overlayHeight : nil
+        guard self.layout.usesFixedCanvas, self.shouldReservePreviewArea else { return nil }
+        let chipRow = SystemLoadChip.height(for: self.layout.transFontSize) + self.layout.vPadding / 2
+        return self.layout.overlayHeight + (self.showsSystemLoadChip ? chipRow : 0)
     }
 
     private var previewMaxWidth: CGFloat {
@@ -3106,6 +3112,12 @@ struct BottomOverlayView: View {
             }
 
             VStack(spacing: self.layout.vPadding / 2) {
+                if self.showsSystemLoadChip {
+                    SystemLoadChip(fontSize: self.layout.transFontSize)
+                        .frame(maxWidth: self.previewMaxWidth, alignment: .leading)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+
                 if self.shouldReservePreviewArea {
                     if self.layout.usesFixedCanvas {
                         // Transcription text area (fixed-height in large mode)
@@ -3397,6 +3409,9 @@ struct BottomOverlayView: View {
         .onChange(of: self.settings.enableStreamingPreview) { _, _ in
             self.dynamicPreviewResizeBucket = self.previewResizeBucket(for: self.currentPreviewSizingText)
             self.frozenDynamicPreviewHeight = nil
+            BottomOverlayWindowController.shared.refreshSizeForContent()
+        }
+        .onChange(of: self.showsSystemLoadChip) { _, _ in
             BottomOverlayWindowController.shared.refreshSizeForContent()
         }
         .onChange(of: self.contentState.cachedPreviewText) { _, _ in
