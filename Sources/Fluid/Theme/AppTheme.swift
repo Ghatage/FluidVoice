@@ -3,6 +3,48 @@ import SwiftUI
 /// Central theme definition for the Fluid app. All colors, spacings and materials
 /// should be defined here to keep styling consistent and easy to evolve.
 struct AppTheme {
+    struct TidePalette {
+        let bg: Color
+        let card: Color
+        let text: Color
+        let muted: Color
+        let line: Color
+        let accent: Color
+        let accentInk: Color
+        let accent2: Color
+        let accent2Ink: Color
+        let accentSoft: Color
+        let accentHover: Color
+
+        static let light = TidePalette(
+            bg: Color(red: 1.000, green: 0.969, blue: 0.949),
+            card: .white,
+            text: Color(red: 0.118, green: 0.082, blue: 0.071),
+            muted: Color(red: 0.478, green: 0.365, blue: 0.329),
+            line: Color(red: 0.118, green: 0.082, blue: 0.071).opacity(0.12),
+            accent: Color(red: 1.000, green: 0.361, blue: 0.224),
+            accentInk: .white,
+            accent2: Color(red: 0.055, green: 0.486, blue: 0.525),
+            accent2Ink: .white,
+            accentSoft: Color(red: 1.000, green: 0.867, blue: 0.824),
+            accentHover: Color(red: 0.929, green: 0.286, blue: 0.157)
+        )
+
+        static let dark = TidePalette(
+            bg: Color(red: 0.102, green: 0.063, blue: 0.051),
+            card: Color(red: 0.169, green: 0.102, blue: 0.075),
+            text: Color(red: 1.000, green: 0.945, blue: 0.918),
+            muted: Color(red: 0.788, green: 0.647, blue: 0.584),
+            line: Color(red: 1.000, green: 0.945, blue: 0.918).opacity(0.12),
+            accent: Color(red: 1.000, green: 0.478, blue: 0.361),
+            accentInk: Color(red: 0.165, green: 0.051, blue: 0.020),
+            accent2: Color(red: 0.282, green: 0.769, blue: 0.812),
+            accent2Ink: Color(red: 0.016, green: 0.149, blue: 0.165),
+            accentSoft: Color(red: 0.302, green: 0.125, blue: 0.082),
+            accentHover: Color(red: 1.000, green: 0.361, blue: 0.224)
+        )
+    }
+
     struct Palette {
         let windowBackground: Color
         let contentBackground: Color
@@ -242,8 +284,8 @@ struct AppTheme {
             static let standard = Window(
                 mainMinWidth: 800,
                 mainMinHeight: 500,
-                onboardingMinWidth: 940,
-                onboardingMinHeight: 700
+                onboardingMinWidth: 680,
+                onboardingMinHeight: 460
             )
         }
 
@@ -268,6 +310,7 @@ struct AppTheme {
     }
 
     let palette: Palette
+    let tide: TidePalette
     let typography: Typography
     let metrics: Metrics
     let materials: Materials
@@ -303,6 +346,7 @@ struct AppTheme {
                 warning: Color(nsColor: .systemOrange),
                 success: accent
             ),
+            tide: .light,
             typography: .standard,
             metrics: Metrics(
                 spacing: .standard,
@@ -346,6 +390,7 @@ struct AppTheme {
                 warning: Color(nsColor: .systemOrange),
                 success: accent
             ),
+            tide: .dark,
             typography: .standard,
             metrics: Metrics(
                 spacing: .standard,

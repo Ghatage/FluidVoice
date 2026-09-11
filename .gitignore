@@ -223,3 +223,8 @@ sample/
 .codex
 AGENTS.md
 builds/
+
+# Local planning / scratch (not committed)
+tasks/
+.claude/
+docs/design/onboarding-tide/

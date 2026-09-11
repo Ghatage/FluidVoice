@@ -443,6 +443,18 @@ struct ContentView: View {
                 }
             }
             .toolbar(removing: .sidebarToggle)
+            // Onboarding draws its own chrome over a full-bleed `bg` surface. The toolbar
+            // area otherwise paints an opaque band across the top that covers the step dots.
+            // Hide only its *background*: hiding the toolbar itself takes the titlebar — and
+            // with it the traffic lights — away, leaving no way to close the window.
+            .toolbarBackground(
+                self.settings.shouldShowOnboarding ? .hidden : .automatic,
+                for: .windowToolbar
+            )
+            // SwiftUI renders the window title inside the toolbar, so AppKit's
+            // `titleVisibility` cannot hide it — blank it here instead. The mock has no
+            // titlebar text; the brand lives in the kicker.
+            .navigationTitle(self.settings.shouldShowOnboarding ? "" : "FluidVoice")
             .overlay(alignment: .center) {}
             .alert(
                 self.asr.errorTitle,
@@ -1685,25 +1697,17 @@ struct ContentView: View {
                 set: { self.settings.onboardingCurrentStep = $0 }
             ),
             accessibilityEnabled: self.accessibilityEnabled,
-            accessibilitySetupInProgress: self.didOpenAccessibilityPane,
-            markAISkipped: {
-                self.settings.onboardingAISkipped = true
-                self.settings.setDictationPromptSelection(.off)
-            },
             finishOnboarding: {
                 self.completeOnboardingIfPossible()
             },
-            finishOnboardingAtGettingStarted: {
-                self.completeOnboardingIfPossible(selecting: .welcome)
+            finishOnboardingInBackground: {
+                self.completeOnboarding(selecting: .welcome)
             },
-            openAIEnhancementSettingsFromOnboarding: {
-                self.completeOnboardingForAIProviderSetup()
+            startTryout: self.startRecording,
+            stopTryout: {
+                await self.stopAndProcessTranscription(route: .onboardingSandbox)
             },
             openAccessibilitySettings: self.openAccessibilitySettings,
-            restartApp: self.restartApp,
-            menuBarManager: self.menuBarManager,
-            activeShortcutRecordingTarget: self.$activeShortcutRecordingTarget,
-            shortcutRecordingMessage: self.$shortcutRecordingMessage,
             theme: self.theme
         )
         .environmentObject(self.appServices)
@@ -3388,15 +3392,12 @@ struct ContentView: View {
     }
 
     private var isOnboardingVoicePlaygroundStepActive: Bool {
-        let onboardingPlaygroundStep = 4
         return !self.settings.onboardingCompleted &&
-            self.settings.onboardingCurrentStep == onboardingPlaygroundStep
+            self.settings.onboardingCurrentStep == OnboardingFlowView.Step.tryout.rawValue
     }
 
     private var isOnboardingSandboxRouteActive: Bool {
-        let onboardingAIEnhancementStep = 5
-        return self.isOnboardingVoicePlaygroundStepActive ||
-            (!self.settings.onboardingCompleted && self.settings.onboardingCurrentStep == onboardingAIEnhancementStep)
+        self.isOnboardingVoicePlaygroundStepActive
     }
 
     private func currentDictationOutputRouteForHotkeyStop() -> DictationOutputRoute {
@@ -4699,10 +4700,6 @@ extension ContentView {
         self.accessibilityEnabled
     }
 
-    private var onboardingAIReady: Bool {
-        self.settings.onboardingAISkipped || DictationAIPostProcessingGate.isProviderConfigured()
-    }
-
     private var onboardingPlaygroundReady: Bool {
         self.settings.onboardingPlaygroundValidated || self.settings.onboardingPlaygroundSkipped
     }
@@ -4731,22 +4728,12 @@ extension ContentView {
         self.completeOnboarding(selecting: target)
     }
 
-    func completeOnboardingForAIProviderSetup() {
-        let missingRequirements = self.missingOnboardingCompletionRequirements(allowsAIConfiguration: true)
-        guard missingRequirements.isEmpty else {
-            self.presentOnboardingCompletionBlocked(missingRequirements)
-            return
-        }
-
-        self.completeOnboarding(selecting: .aiEnhancements)
-    }
-
     private func completeOnboarding(selecting target: SidebarItem? = nil) {
         self.settings.onboardingCompleted = true
         self.navigateToApp(target ?? .welcome)
     }
 
-    private func missingOnboardingCompletionRequirements(allowsAIConfiguration: Bool = false) -> [String] {
+    private func missingOnboardingCompletionRequirements() -> [String] {
         var missing: [String] = []
 
         if !self.onboardingVoiceModelReady {
@@ -4755,11 +4742,10 @@ extension ContentView {
         if !self.onboardingMicrophoneReady {
             missing.append("microphone access")
         }
-        if !self.onboardingAccessibilityReady {
+        if !self.onboardingAccessibilityReady,
+           self.settings.textInsertionMode != .reliablePaste
+        {
             missing.append("Accessibility access")
-        }
-        if !allowsAIConfiguration, !self.onboardingAIReady {
-            missing.append("AI choice")
         }
         if !self.onboardingPlaygroundReady {
             missing.append("test or skip")

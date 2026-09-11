@@ -2577,12 +2577,20 @@ final class SettingsStore: ObservableObject {
     var onboardingCurrentStep: Int {
         get {
             let raw = self.defaults.integer(forKey: Keys.onboardingCurrentStep)
-            return max(0, min(5, raw))
+            return max(0, min(3, raw))
         }
         set {
             objectWillChange.send()
-            let clamped = max(0, min(5, newValue))
+            let clamped = max(0, min(3, newValue))
             self.defaults.set(clamped, forKey: Keys.onboardingCurrentStep)
+        }
+    }
+
+    var hasStartedModelDownload: Bool {
+        get { self.defaults.bool(forKey: Keys.hasStartedModelDownload) }
+        set {
+            objectWillChange.send()
+            self.defaults.set(newValue, forKey: Keys.hasStartedModelDownload)
         }
     }
 
@@ -2671,17 +2679,19 @@ final class SettingsStore: ObservableObject {
         if shouldShowForThisInstall {
             self.defaults.set(false, forKey: Keys.onboardingCompleted)
             self.defaults.set(0, forKey: Keys.onboardingCurrentStep)
-            self.defaults.set(false, forKey: Keys.onboardingAISkipped)
+            self.defaults.set(true, forKey: Keys.onboardingAISkipped)
             self.defaults.set(false, forKey: Keys.onboardingPlaygroundValidated)
             self.defaults.set(false, forKey: Keys.onboardingPlaygroundSkipped)
             self.defaults.set("en", forKey: Keys.onboardingSelectedLanguageID)
+            self.defaults.set(false, forKey: Keys.hasStartedModelDownload)
         } else {
             self.defaults.set(true, forKey: Keys.onboardingCompleted)
             self.defaults.set(0, forKey: Keys.onboardingCurrentStep)
-            self.defaults.set(false, forKey: Keys.onboardingAISkipped)
+            self.defaults.set(true, forKey: Keys.onboardingAISkipped)
             self.defaults.set(false, forKey: Keys.onboardingPlaygroundValidated)
             self.defaults.set(false, forKey: Keys.onboardingPlaygroundSkipped)
             self.defaults.set("en", forKey: Keys.onboardingSelectedLanguageID)
+            self.defaults.set(false, forKey: Keys.hasStartedModelDownload)
         }
     }
 
@@ -2691,10 +2701,11 @@ final class SettingsStore: ObservableObject {
         self.defaults.set(true, forKey: Keys.manualOnboardingResetRequested)
         self.defaults.set(Date(), forKey: Keys.manualOnboardingResetRequestedAt)
         self.defaults.set(0, forKey: Keys.onboardingCurrentStep)
-        self.defaults.set(false, forKey: Keys.onboardingAISkipped)
+        self.defaults.set(true, forKey: Keys.onboardingAISkipped)
         self.defaults.set(false, forKey: Keys.onboardingPlaygroundValidated)
         self.defaults.set(false, forKey: Keys.onboardingPlaygroundSkipped)
         self.defaults.set("en", forKey: Keys.onboardingSelectedLanguageID)
+        self.defaults.set(false, forKey: Keys.hasStartedModelDownload)
         self.defaults.set(false, forKey: Keys.playgroundUsed)
     }
 
@@ -2718,9 +2729,10 @@ final class SettingsStore: ObservableObject {
         self.defaults.set(false, forKey: Keys.manualOnboardingResetRequested)
         self.defaults.removeObject(forKey: Keys.manualOnboardingResetRequestedAt)
         self.defaults.set(0, forKey: Keys.onboardingCurrentStep)
-        self.defaults.set(false, forKey: Keys.onboardingAISkipped)
+        self.defaults.set(true, forKey: Keys.onboardingAISkipped)
         self.defaults.set(false, forKey: Keys.onboardingPlaygroundValidated)
         self.defaults.set(false, forKey: Keys.onboardingPlaygroundSkipped)
+        self.defaults.set(false, forKey: Keys.hasStartedModelDownload)
     }
 
     private func hasLegacyUsageSignals() -> Bool {
@@ -5468,6 +5480,7 @@ private extension SettingsStore {
         static let manualOnboardingResetRequested = "ManualOnboardingResetRequested"
         static let manualOnboardingResetRequestedAt = "ManualOnboardingResetRequestedAt"
         static let onboardingCurrentStep = "OnboardingCurrentStep"
+        static let hasStartedModelDownload = "OnboardingHasStartedModelDownload"
         static let onboardingAISkipped = "OnboardingAISkipped"
         static let onboardingPlaygroundValidated = "OnboardingPlaygroundValidated"
         static let onboardingPlaygroundSkipped = "OnboardingPlaygroundSkipped"

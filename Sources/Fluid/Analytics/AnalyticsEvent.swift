@@ -89,6 +89,8 @@ struct AnalyticsModelDescriptor: Equatable {
 
 enum AnalyticsOnboardingStep: String {
     case welcome
+    case microphone
+    case accessibility
     case language
     case voiceModel = "voice_model"
     case permissions
