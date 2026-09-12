@@ -4,89 +4,49 @@ import UniformTypeIdentifiers
 
 struct TranscriptionHistoryView: View {
     @ObservedObject private var historyStore = TranscriptionHistoryStore.shared
-    @ObservedObject private var settings = SettingsStore.shared
     @Environment(\.theme) private var theme
 
-    @State private var searchQuery: String = ""
-    @State private var showClearConfirmation: Bool = false
-    @State private var showReportConfirmation: Bool = false
+    @State private var searchQuery = ""
+    @State private var showReportConfirmation = false
     @State private var selectedReportEntry: TranscriptionHistoryEntry?
-    @State private var selectedEntryID: UUID?
 
     private var filteredEntries: [TranscriptionHistoryEntry] {
         self.historyStore.search(query: self.searchQuery)
     }
 
     private var selectedEntry: TranscriptionHistoryEntry? {
-        guard let id = selectedEntryID else { return self.filteredEntries.first }
-        return self.filteredEntries.first(where: { $0.id == id })
+        if let id = self.historyStore.selectedEntryID,
+           let selected = self.filteredEntries.first(where: { $0.id == id })
+        {
+            return selected
+        }
+        return self.filteredEntries.first
     }
 
     var body: some View {
-        HSplitView {
-            // MARK: - Left Panel: Entry List
+        HStack(spacing: 0) {
+            self.listColumn
+                .frame(width: 340)
 
-            VStack(spacing: 0) {
-                // Search Bar
-                self.searchBar
-                    .padding(12)
+            Rectangle()
+                .fill(self.theme.tide.line)
+                .frame(width: 1)
 
-                if self.historyStore.isLoading {
-                    ProgressView("Loading history…")
-                        .padding(12)
-                } else if let error = self.historyStore.persistenceError {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(error)
-                            .font(.caption)
-                        Button("Retry saving history") {
-                            self.historyStore.retryPersistence()
-                        }
-                    }
-                    .padding(12)
-                }
-
-                Divider()
-                    .opacity(0.3)
-
-                // Entry List
-                if self.filteredEntries.isEmpty {
-                    self.emptyStateView
+            Group {
+                if let entry = self.selectedEntry {
+                    self.detailColumn(entry)
                 } else {
-                    self.entryListView
-                }
-
-                // Footer with stats and clear button
-                self.footerView
-                    .disabled(self.historyStore.isLoading)
-            }
-            .frame(minWidth: 280, idealWidth: 320, maxWidth: 400)
-            .background(self.theme.palette.contentBackground)
-
-            // MARK: - Right Panel: Entry Detail
-
-            if let entry = selectedEntry {
-                self.entryDetailView(entry)
-                    .frame(minWidth: 400)
-            } else {
-                self.noSelectionView
-                    .frame(minWidth: 400)
-            }
-        }
-        .onAppear {
-            if self.selectedEntryID == nil {
-                self.selectedEntryID = self.filteredEntries.first?.id
-            }
-        }
-        .alert("Clear All History", isPresented: self.$showClearConfirmation) {
-            Button("Cancel", role: .cancel) {}
-            Button("Clear All", role: .destructive) {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    self.historyStore.clearAllHistory()
-                    self.selectedEntryID = nil
+                    self.noSelectionView
                 }
             }
-        } message: {
-            Text("This will permanently delete all \(self.historyStore.entries.count) transcription entries. This action cannot be undone.")
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .background(self.theme.tide.bg)
+        .foregroundStyle(self.theme.tide.text)
+        .tint(self.theme.tide.accent)
+        .onAppear(perform: self.reconcileSelection)
+        .onChange(of: self.filteredEntries.map(\.id)) { _, _ in
+            self.reconcileSelection()
         }
         .alert("Report Sent", isPresented: self.$showReportConfirmation) {
             Button("OK", role: .cancel) {}
@@ -102,142 +62,126 @@ struct TranscriptionHistoryView: View {
         }
     }
 
-    // MARK: - Search Bar
+    private var listColumn: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("History")
+                .font(TideOnboardingType.heading(size: 30))
+                .tracking(-0.9)
 
-    private var searchBar: some View {
+            self.searchField
+
+            if self.historyStore.isLoading {
+                ProgressView("Loading history…")
+                    .font(TideOnboardingType.body(size: 13))
+                    .foregroundStyle(self.theme.tide.muted)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 8)
+            } else if let error = self.historyStore.persistenceError {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(error)
+                        .font(TideOnboardingType.body(size: 12))
+                        .foregroundStyle(self.theme.tide.muted)
+                    Button("Retry saving history") {
+                        self.historyStore.retryPersistence()
+                    }
+                    .font(TideOnboardingType.heading(size: 12, weight: .bold))
+                    .foregroundStyle(self.theme.tide.accent)
+                    .buttonStyle(.plain)
+                }
+            }
+
+            if self.filteredEntries.isEmpty {
+                self.emptyStateView
+            } else {
+                ScrollView(.vertical, showsIndicators: false) {
+                    LazyVStack(spacing: 4) {
+                        ForEach(self.filteredEntries) { entry in
+                            self.entryRow(entry)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(.top, 22)
+        .padding(.leading, 22)
+        .padding(.trailing, 14)
+        .padding(.bottom, 22)
+        .background(self.theme.tide.bg)
+    }
+
+    private var searchField: some View {
         HStack(spacing: 8) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.secondary)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(self.theme.tide.muted)
 
-            TextField("Search transcriptions...", text: self.$searchQuery)
+            TextField("Search transcriptions…", text: self.$searchQuery)
                 .textFieldStyle(.plain)
-                .font(.system(size: 13))
+                .font(TideOnboardingType.body(size: 14))
+                .foregroundStyle(self.theme.tide.text)
 
             if !self.searchQuery.isEmpty {
                 Button {
                     self.searchQuery = ""
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
+                        .font(.system(size: 13))
+                        .foregroundStyle(self.theme.tide.muted)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel("Clear search")
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(RoundedRectangle(cornerRadius: 8)
-            .fill(self.theme.palette.cardBackground)
-            .overlay(RoundedRectangle(cornerRadius: 8)
-                .stroke(self.theme.palette.cardBorder.opacity(0.6), lineWidth: 1)))
-    }
-
-    // MARK: - Entry List
-
-    private var entryListView: some View {
-        ScrollView {
-            LazyVStack(spacing: 2) {
-                ForEach(self.filteredEntries) { entry in
-                    self.entryRow(entry)
-                }
-            }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 6)
-        }
+        .padding(.horizontal, 14)
+        .frame(height: 40)
+        .background(self.theme.tide.card, in: Capsule())
     }
 
     private func entryRow(_ entry: TranscriptionHistoryEntry) -> some View {
-        let isSelected = self.selectedEntryID == entry.id
+        let isSelected = self.selectedEntry?.id == entry.id
 
         return Button {
-            withAnimation(.easeInOut(duration: 0.15)) {
-                self.selectedEntryID = entry.id
-            }
+            self.historyStore.selectedEntryID = entry.id
         } label: {
-            VStack(alignment: .leading, spacing: 4) {
-                // Top row: App name and time
+            VStack(alignment: .leading, spacing: 5) {
                 HStack(spacing: 6) {
                     Text(entry.appName.isEmpty ? "Unknown App" : entry.appName)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(isSelected ? .white : .secondary)
+                        .font(TideOnboardingType.heading(size: 12, weight: .bold))
                         .lineLimit(1)
 
-                    if self.settings.showHistoryPerformanceMetrics,
-                       let duration = entry.transcriptionDurationMilliseconds
-                    {
-                        self.processingBadge(
-                            text: "ASR \(TranscriptionHistoryEntry.formattedDuration(milliseconds: duration))",
-                            isSelected: isSelected,
-                            isAccent: false
-                        )
+                    if entry.wasAIProcessed {
+                        self.polishedTag(selected: isSelected, compact: true)
                     }
 
-                    if self.settings.showHistoryPerformanceMetrics,
-                       entry.wasAIProcessed || entry.aiProcessingError != nil
-                    {
-                        self.processingBadge(
-                            text: entry.aiProcessingDurationMilliseconds.map {
-                                "AI \(TranscriptionHistoryEntry.formattedDuration(milliseconds: $0))"
-                            } ?? "AI",
-                            isSelected: isSelected,
-                            isAccent: true
-                        )
-                    } else if entry.wasAIProcessed {
-                        self.processingBadge(text: "AI", isSelected: isSelected, isAccent: true)
-                    }
-
-                    if self.settings.showHistoryPerformanceMetrics,
-                       let tokensPerSecond = entry.aiTokensPerSecond
-                    {
-                        self.processingBadge(
-                            text: TranscriptionHistoryEntry.formattedTokensPerSecond(tokensPerSecond, compact: true),
-                            isSelected: isSelected,
-                            isAccent: true
-                        )
-                    }
-
-                    if self.hasAudio(entry) {
-                        Image(systemName: "waveform")
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(isSelected ? .white.opacity(0.8) : self.theme.palette.accent)
-                            .help("Saved local dictation audio")
-                    }
-
-                    if entry.aiProcessingError != nil {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(isSelected ? .white : Color.orange)
-                            .help(entry.aiProcessingError ?? "")
-                    }
-
-                    Spacer()
+                    Spacer(minLength: 4)
 
                     Text(entry.relativeTimeString)
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(isSelected ? .white.opacity(0.7) : Color.secondary.opacity(0.6))
+                        .font(TideOnboardingType.body(size: 11))
+                        .foregroundStyle(self.theme.tide.text.opacity(0.7))
+                        .lineLimit(1)
                 }
 
-                // Preview text
-                Text(entry.previewText)
-                    .font(.system(size: 12))
-                    .foregroundStyle(isSelected ? .white.opacity(0.9) : .primary)
+                Text(self.finalText(for: entry))
+                    .font(TideOnboardingType.body(size: 14))
+                    .lineSpacing(3)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
+            .foregroundStyle(self.theme.tide.text)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? self.theme.palette.accent : Color.clear)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(isSelected ? self.theme.tide.accentSoft : .clear)
             )
-            .contentShape(Rectangle())
+            .contentShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .buttonStyle(.plain)
         .contextMenu {
             Button {
-                self.copyToClipboard(entry.processedText)
+                self.copyToClipboard(self.finalText(for: entry))
             } label: {
                 Label(entry.wasAIProcessed ? "Copy AI Text" : "Copy Text", systemImage: "doc.on.doc")
             }
@@ -283,367 +227,221 @@ struct TranscriptionHistoryView: View {
             Divider()
 
             Button(role: .destructive) {
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    self.historyStore.deleteEntry(id: entry.id)
-                    if self.selectedEntryID == entry.id {
-                        self.selectedEntryID = self.filteredEntries.first(where: { $0.id != entry.id })?.id
-                    }
-                }
+                self.delete(entry)
             } label: {
                 Label("Delete", systemImage: "trash")
             }
         }
+        .help(entry.aiProcessingError ?? "")
     }
 
-    // MARK: - Empty State
+    private func detailColumn(_ entry: TranscriptionHistoryEntry) -> some View {
+        ScrollView(.vertical, showsIndicators: false) {
+            VStack(alignment: .leading, spacing: 22) {
+                HStack(alignment: .top, spacing: 18) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("\(self.appName(for: entry)) · \(entry.fullDateString)")
+                            .font(TideOnboardingType.heading(size: 12, weight: .bold))
+                            .tracking(0.96)
+                            .foregroundStyle(self.theme.tide.muted)
+                            .textCase(.uppercase)
 
-    private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Spacer()
+                        Text(self.finalText(for: entry))
+                            .font(TideOnboardingType.heading(size: 22))
+                            .tracking(-0.44)
+                            .lineSpacing(3)
+                            .lineLimit(3)
+                            .textSelection(.enabled)
+                    }
 
-            Image(systemName: self.searchQuery.isEmpty ? "clock.arrow.circlepath" : "magnifyingglass")
-                .font(.system(size: 36, weight: .light))
-                .foregroundStyle(.tertiary)
+                    Spacer(minLength: 8)
 
-            VStack(spacing: 4) {
-                Text(self.searchQuery.isEmpty ? "No History Yet" : "No Results")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-
-                Text(self.searchQuery.isEmpty
-                    ? "Your transcriptions will appear here"
-                    : "Try a different search term")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.tertiary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-    }
-
-    // MARK: - Footer
-
-    private var footerView: some View {
-        VStack(spacing: 0) {
-            Divider()
-                .opacity(0.3)
-
-            HStack {
-                // Stats
-                Text("\(self.historyStore.entries.count) entries")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(.tertiary)
-
-                Spacer()
-
-                // Clear All Button
-                if !self.historyStore.entries.isEmpty {
                     Button {
-                        self.showClearConfirmation = true
+                        self.copyToClipboard(self.finalText(for: entry))
                     } label: {
-                        Text("Clear All")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.secondary)
+                        Label("Copy", systemImage: "doc.on.doc")
+                            .font(TideOnboardingType.heading(size: 14, weight: .heavy))
+                            .foregroundStyle(self.theme.tide.accentInk)
+                            .padding(.horizontal, 16)
+                            .frame(height: 38)
+                            .background(self.theme.tide.accent, in: Capsule())
+                            .contentShape(Capsule())
                     }
                     .buttonStyle(.plain)
-                    .opacity(0.8)
-                }
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-        }
-    }
-
-    // MARK: - Entry Detail View
-
-    private func entryDetailView(_ entry: TranscriptionHistoryEntry) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                // Header
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 8) {
-                        Text("Transcription Details")
-                            .font(.system(size: 18, weight: .semibold))
-
-                        Spacer()
-
-                        Button {
-                            self.copyToClipboard(entry.processedText)
-                        } label: {
-                            Label(entry.wasAIProcessed ? "Copy AI" : "Copy", systemImage: "doc.on.doc")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-
-                        if self.hasAudio(entry) {
-                            Button {
-                                self.exportPair(entry)
-                            } label: {
-                                Label("Export Pair", systemImage: "square.and.arrow.up")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-
-                            Button {
-                                self.revealAudio(entry)
-                            } label: {
-                                Label("Audio", systemImage: "waveform")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                        }
-
-                        Button {
-                            self.openFeedbackReport(for: entry)
-                        } label: {
-                            Label("Report", systemImage: "hand.thumbsup.slash")
-                                .font(.system(size: 12, weight: .medium))
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                        .help("Review and send this example to FluidVoice")
-
-                        if entry.wasAIProcessed {
-                            Button {
-                                self.copyToClipboard(entry.rawText)
-                            } label: {
-                                Label("Raw", systemImage: "doc.on.doc.fill")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-
-                            Button {
-                                self.copyToClipboard(self.combinedText(for: entry))
-                            } label: {
-                                Label("Both", systemImage: "doc.on.doc")
-                                    .font(.system(size: 12, weight: .medium))
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                        }
-                    }
-
-                    Text(entry.fullDateString)
-                        .font(.system(size: 13))
-                        .foregroundStyle(.secondary)
                 }
 
-                Divider()
-                    .opacity(0.3)
+                self.finalTextSection(entry)
 
-                if let aiError = entry.aiProcessingError {
-                    HStack(alignment: .top, spacing: 8) {
-                        Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundStyle(Color.orange)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("AI Enhancement failed - raw transcription was typed instead")
-                                .font(.system(size: 12, weight: .semibold))
-                            Text(aiError)
-                                .font(.system(size: 11))
-                                .foregroundStyle(.secondary)
-                                .textSelection(.enabled)
-                        }
-                    }
-                    .padding(10)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(
-                        RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(Color.orange.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                    .stroke(Color.orange.opacity(0.3), lineWidth: 1)
-                            )
-                    )
+                if !entry.rawText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    self.rawTextSection(entry)
                 }
 
-                // Final Text Section
-                self.detailSection(
-                    title: "Final Text",
-                    content: entry.processedText,
-                    badge: entry.wasAIProcessed ? "AI Enhanced" : nil
-                )
+                self.metadataChips(entry)
 
-                // Raw Text Section (only if different)
-                if entry.wasAIProcessed {
-                    self.detailSection(
-                        title: "Original Transcription",
-                        content: entry.rawText,
-                        badge: nil,
-                        isSecondary: true
-                    )
-                }
-
-                Divider()
-                    .opacity(0.3)
-
-                // Metadata Grid
-                self.metadataGrid(entry)
-
-                Spacer(minLength: 20)
-
-                // Delete Button
                 HStack {
-                    Spacer()
-                    Button(role: .destructive) {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            let nextEntry = self.filteredEntries.first(where: { $0.id != entry.id })
-                            self.historyStore.deleteEntry(id: entry.id)
-                            self.selectedEntryID = nextEntry?.id
-                        }
-                    } label: {
-                        Label("Delete Entry", systemImage: "trash")
-                            .font(.system(size: 12, weight: .medium))
+                    Button("Report a bad result") {
+                        self.openFeedbackReport(for: entry)
                     }
-                    .buttonStyle(.bordered)
-                    .tint(.red)
-                    .controlSize(.small)
+                    .font(TideOnboardingType.heading(size: 13, weight: .bold))
+                    .foregroundStyle(self.theme.tide.muted)
+                    .buttonStyle(.plain)
+
+                    Spacer()
+
+                    Button(role: .destructive) {
+                        self.delete(entry)
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                            .font(TideOnboardingType.heading(size: 13, weight: .bold))
+                            .foregroundStyle(self.theme.tide.accentDeep)
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .padding(24)
+            .padding(.top, 22)
+            .padding(.leading, 28)
+            .padding(.trailing, 32)
+            .padding(.bottom, 32)
         }
-        .background(self.theme.palette.contentBackground)
+        .background(self.theme.tide.bg)
     }
 
-    private func detailSection(
-        title: String,
-        content: String,
-        badge: String?,
-        isSecondary: Bool = false
-    ) -> some View {
+    private func finalTextSection(_ entry: TranscriptionHistoryEntry) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .textCase(.uppercase)
-                    .tracking(0.5)
-
-                if let badge = badge {
-                    Text(badge)
-                        .font(.system(size: 9, weight: .bold))
-                        .foregroundStyle(self.theme.palette.accent)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(self.theme.palette.accent.opacity(0.15))
-                        )
+                self.sectionLabel("Final text")
+                if entry.wasAIProcessed {
+                    self.polishedTag(selected: false, compact: false)
                 }
             }
 
-            Text(content)
-                .font(.system(size: 14, design: .default))
-                .foregroundStyle(isSecondary ? .secondary : .primary)
+            Text(self.finalText(for: entry))
+                .font(TideOnboardingType.body(size: 16))
+                .lineSpacing(8)
                 .textSelection(.enabled)
-                .padding(14)
+                .padding(.vertical, 18)
+                .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoundedRectangle(cornerRadius: 10)
-                    .fill(self.theme.palette.cardBackground)
-                    .overlay(RoundedRectangle(cornerRadius: 10)
-                        .stroke(self.theme.palette.cardBorder.opacity(isSecondary ? 0.35 : 0.5), lineWidth: 1)))
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(self.theme.tide.card)
+                )
         }
     }
 
-    private func metadataGrid(_ entry: TranscriptionHistoryEntry) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Details")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .tracking(0.5)
+    private func rawTextSection(_ entry: TranscriptionHistoryEntry) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            self.sectionLabel("What you said")
 
-            LazyVGrid(columns: [
-                GridItem(.flexible(), spacing: 16),
-                GridItem(.flexible(), spacing: 16),
-            ], spacing: 12) {
-                self.metadataItem(icon: "app.fill", label: "Application", value: entry.appName.isEmpty ? "Unknown" : entry.appName)
-                self.metadataItem(icon: "macwindow", label: "Window", value: entry.windowTitle.isEmpty ? "Unknown" : entry.windowTitle)
-                self.metadataItem(icon: "character.cursor.ibeam", label: "Characters", value: "\(entry.characterCount)")
-                self.metadataItem(icon: "sparkles", label: "AI Processed", value: entry.wasAIProcessed ? "Yes" : "No")
-                if self.settings.showHistoryPerformanceMetrics,
-                   let duration = entry.transcriptionDurationMilliseconds
-                {
-                    self.metadataItem(
-                        icon: "waveform",
-                        label: "Transcription Time",
-                        value: TranscriptionHistoryEntry.formattedDuration(milliseconds: duration)
-                    )
-                }
-                if self.settings.showHistoryPerformanceMetrics,
-                   let duration = entry.aiProcessingDurationMilliseconds
-                {
-                    self.metadataItem(
-                        icon: "sparkles",
-                        label: "Cleanup Time",
-                        value: TranscriptionHistoryEntry.formattedDuration(milliseconds: duration)
-                    )
-                }
-                if self.settings.showHistoryPerformanceMetrics,
-                   let tokensPerSecond = entry.aiTokensPerSecond
-                {
-                    self.metadataItem(
-                        icon: "speedometer",
-                        label: "AI Speed",
-                        value: TranscriptionHistoryEntry.formattedTokensPerSecond(tokensPerSecond)
-                    )
-                }
-                self.metadataItem(icon: "waveform", label: "Audio", value: self.audioMetadataText(for: entry))
-            }
+            Text(entry.rawText)
+                .font(TideOnboardingType.body(size: 15))
+                .foregroundStyle(self.theme.tide.muted)
+                .lineSpacing(7.5)
+                .textSelection(.enabled)
+                .padding(.vertical, 16)
+                .padding(.horizontal, 20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(
+                            self.theme.tide.line,
+                            style: StrokeStyle(lineWidth: 1.5, dash: [6, 4])
+                        )
+                )
         }
     }
 
-    private func metadataItem(icon: String, label: String, value: String) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.tertiary)
-                .frame(width: 20)
+    private func metadataChips(_ entry: TranscriptionHistoryEntry) -> some View {
+        LazyVGrid(
+            columns: [GridItem(.adaptive(minimum: 136), spacing: 8, alignment: .leading)],
+            alignment: .leading,
+            spacing: 8
+        ) {
+            self.metadataChip(key: "App", value: self.appName(for: entry))
+            self.metadataChip(key: "Characters", value: "\(entry.characterCount)")
+            self.metadataChip(key: "Model", value: self.modelText(for: entry))
+            self.metadataChip(key: "Audio", value: self.audioMetadataText(for: entry))
+        }
+    }
 
-            VStack(alignment: .leading, spacing: 2) {
-                Text(label)
-                    .font(.system(size: 10, weight: .medium))
-                    .foregroundStyle(.tertiary)
+    private func metadataChip(key: String, value: String) -> some View {
+        HStack(spacing: 5) {
+            Text(key)
+                .foregroundStyle(self.theme.tide.muted)
+            Text(value)
+                .font(TideOnboardingType.body(size: 13, weight: .bold))
+                .foregroundStyle(self.theme.tide.text)
+                .lineLimit(1)
+        }
+        .font(TideOnboardingType.body(size: 13))
+        .padding(.horizontal, 12)
+        .frame(maxWidth: .infinity, minHeight: 32, alignment: .leading)
+        .background(self.theme.tide.card, in: Capsule())
+        .help("\(key): \(value)")
+    }
 
-                Text(value)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-            }
+    private func sectionLabel(_ title: String) -> some View {
+        Text(title.uppercased())
+            .font(TideOnboardingType.heading(size: 12, weight: .bold))
+            .tracking(0.96)
+            .foregroundStyle(self.theme.tide.muted)
+    }
 
+    private func polishedTag(selected: Bool, compact: Bool) -> some View {
+        Text("Polished")
+            .font(TideOnboardingType.heading(size: compact ? 10 : 11, weight: .bold))
+            .foregroundStyle(selected ? self.theme.tide.accentInk : self.theme.tide.accent2Deep)
+            .padding(.horizontal, compact ? 7 : 8)
+            .padding(.vertical, compact ? 1 : 2)
+            .background(selected ? self.theme.tide.accent : self.theme.tide.accent2Soft, in: Capsule())
+    }
+
+    private var emptyStateView: some View {
+        VStack(spacing: 12) {
+            Spacer()
+            Image(systemName: self.searchQuery.isEmpty ? "clock.arrow.circlepath" : "magnifyingglass")
+                .font(.system(size: 30, weight: .medium))
+                .foregroundStyle(self.theme.tide.muted)
+            Text(self.searchQuery.isEmpty ? "No History Yet" : "No Results")
+                .font(TideOnboardingType.heading(size: 14, weight: .bold))
+                .foregroundStyle(self.theme.tide.muted)
             Spacer()
         }
-        .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8)
-            .fill(self.theme.palette.cardBackground.opacity(0.9)))
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    private func processingBadge(
-        text: String,
-        isSelected: Bool,
-        isAccent: Bool
-    ) -> some View {
-        Text(text)
-            .font(.system(size: 9, weight: .bold))
-            .foregroundStyle(
-                isSelected ? .white.opacity(0.8) : (isAccent ? self.theme.palette.accent : Color.secondary)
-            )
-            .padding(.horizontal, 4)
-            .padding(.vertical, 1)
-            .background(
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(
-                        isSelected
-                            ? .white.opacity(0.2)
-                            : (isAccent ? self.theme.palette.accent.opacity(0.15) : Color.secondary.opacity(0.12))
-                    )
-            )
+    private var noSelectionView: some View {
+        VStack(spacing: 14) {
+            Image(systemName: "text.quote")
+                .font(.system(size: 36, weight: .medium))
+            Text("Select a transcription")
+                .font(TideOnboardingType.heading(size: 14, weight: .bold))
+        }
+        .foregroundStyle(self.theme.tide.muted)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private func reconcileSelection() {
+        guard let current = self.historyStore.selectedEntryID,
+              self.filteredEntries.contains(where: { $0.id == current })
+        else {
+            self.historyStore.selectedEntryID = self.filteredEntries.first?.id
+            return
+        }
+    }
+
+    private func finalText(for entry: TranscriptionHistoryEntry) -> String {
+        entry.clipboardText ?? ""
+    }
+
+    private func appName(for entry: TranscriptionHistoryEntry) -> String {
+        entry.appName.isEmpty ? "Unknown App" : entry.appName
+    }
+
+    private func modelText(for entry: TranscriptionHistoryEntry) -> String {
+        let model = entry.processingModel?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !model.isEmpty { return model }
+        return entry.wasAIProcessed ? "Unknown" : "Not polished"
     }
 
     private func copyToClipboard(_ text: String) {
@@ -656,7 +454,13 @@ struct TranscriptionHistoryView: View {
     }
 
     private func combinedText(for entry: TranscriptionHistoryEntry) -> String {
-        "\(entry.rawText)\n\n\(entry.processedText)"
+        "\(entry.rawText)\n\n\(self.finalText(for: entry))"
+    }
+
+    private func delete(_ entry: TranscriptionHistoryEntry) {
+        let nextEntry = self.filteredEntries.first(where: { $0.id != entry.id })
+        self.historyStore.deleteEntry(id: entry.id)
+        self.historyStore.selectedEntryID = nextEntry?.id
     }
 
     private func hasAudio(_ entry: TranscriptionHistoryEntry) -> Bool {
@@ -664,18 +468,16 @@ struct TranscriptionHistoryView: View {
     }
 
     private func audioMetadataText(for entry: TranscriptionHistoryEntry) -> String {
-        guard let audio = entry.audio, self.hasAudio(entry) else { return "No" }
+        guard let audio = entry.audio, self.hasAudio(entry) else { return "Not saved" }
         let seconds = Double(audio.durationMilliseconds) / 1000.0
         let size = ByteCountFormatter.string(fromByteCount: Int64(audio.byteCount), countStyle: .file)
-        return "\(String(format: "%.1f", seconds))s, \(size)"
+        return "\(String(format: "%.1f", seconds))s · \(size)"
     }
 
     private func revealAudio(_ entry: TranscriptionHistoryEntry) {
         guard let url = DictationAudioHistoryStore.shared.audioFileURL(for: entry),
               FileManager.default.fileExists(atPath: url.path)
-        else {
-            return
-        }
+        else { return }
         NSWorkspace.shared.activateFileViewerSelecting([url])
     }
 
@@ -698,22 +500,6 @@ struct TranscriptionHistoryView: View {
             alert.runModal()
         }
     }
-
-    // MARK: - No Selection View
-
-    private var noSelectionView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "text.quote")
-                .font(.system(size: 40, weight: .light))
-                .foregroundStyle(.tertiary)
-
-            Text("Select a transcription")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(self.theme.palette.contentBackground)
-    }
 }
 
 private struct TranscriptionFeedbackReportSheet: View {
@@ -724,7 +510,7 @@ private struct TranscriptionFeedbackReportSheet: View {
     @State private var outputText: String
     @State private var processingModel: String
     @State private var comment: String
-    @State private var isSending: Bool = false
+    @State private var isSending = false
     @State private var errorMessage: String?
 
     let onSent: () -> Void
@@ -741,10 +527,10 @@ private struct TranscriptionFeedbackReportSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Share anonymous datapoint")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(TideOnboardingType.heading(size: 18, weight: .bold))
                 Text("Help improve our model. Only the example shown below will be sent.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
+                    .font(TideOnboardingType.body(size: 12))
+                    .foregroundStyle(self.theme.tide.muted)
             }
 
             self.feedbackField(title: "Raw Text", text: self.$inputText, height: 88)
@@ -754,8 +540,8 @@ private struct TranscriptionFeedbackReportSheet: View {
 
             if let errorMessage {
                 Text(errorMessage)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.red)
+                    .font(TideOnboardingType.body(size: 12, weight: .medium))
+                    .foregroundStyle(self.theme.tide.accentDeep)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -768,9 +554,7 @@ private struct TranscriptionFeedbackReportSheet: View {
                 .disabled(self.isSending)
 
                 Button {
-                    Task {
-                        await self.sendReport()
-                    }
+                    Task { await self.sendReport() }
                 } label: {
                     HStack(spacing: 8) {
                         if self.isSending {
@@ -783,12 +567,15 @@ private struct TranscriptionFeedbackReportSheet: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
+                .buttonBorderShape(.capsule)
+                .tint(self.theme.tide.accent)
                 .disabled(self.isSendDisabled)
             }
         }
         .padding(20)
         .frame(width: 520)
-        .background(self.theme.palette.contentBackground)
+        .foregroundStyle(self.theme.tide.text)
+        .background(self.theme.tide.bg)
     }
 
     private var isSendDisabled: Bool {
@@ -820,22 +607,21 @@ private struct TranscriptionFeedbackReportSheet: View {
 
     private func feedbackField(title: String, text: Binding<String>, height: CGFloat) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(title)
-                .font(.system(size: 11, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
+            Text(title.uppercased())
+                .font(TideOnboardingType.heading(size: 11, weight: .bold))
+                .foregroundStyle(self.theme.tide.muted)
 
             TextEditor(text: text)
-                .font(.system(size: 13))
+                .font(TideOnboardingType.body(size: 13))
                 .scrollContentBackground(.hidden)
                 .padding(8)
                 .frame(height: height)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(self.theme.palette.cardBackground)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .fill(self.theme.tide.card)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(self.theme.palette.cardBorder.opacity(0.55), lineWidth: 1)
+                            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                                .stroke(self.theme.tide.line, lineWidth: 1)
                         )
                 )
         }

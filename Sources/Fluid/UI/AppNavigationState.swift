@@ -8,6 +8,7 @@
 import Foundation
 
 enum SidebarItem: Hashable {
+    case home
     case welcome
     case voiceEngine
     case aiEnhancements
@@ -20,6 +21,18 @@ enum SidebarItem: Hashable {
     case feedback
     case commandMode
     case rewriteMode
+    case settings(SettingsSection)
+
+    /// Stats is folded into Tide Home. Keep the legacy case as a migration target
+    /// for callers that still ask for the retired destination.
+    var tideDestination: SidebarItem {
+        self == .stats ? .home : self
+    }
+
+    var settingsSection: SettingsSection? {
+        guard case let .settings(section) = self else { return nil }
+        return section
+    }
 }
 
 enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
@@ -38,11 +51,11 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
     var title: String {
         switch self {
         case .general: return "General"
-        case .dictation: return "Dictation"
+        case .dictation: return "Shortcuts"
         case .notifications: return "Notifications"
         case .audio: return "Audio"
         case .overlay: return "Overlay"
-        case .dataAndDiagnostics: return "Data & Diagnostics"
+        case .dataAndDiagnostics: return "Data & Privacy"
         case .experimental: return "Experimental"
         }
     }
@@ -62,7 +75,7 @@ enum SettingsSection: String, CaseIterable, Identifiable, Hashable {
 
 struct SettingsNavigationState: Equatable {
     var selectedSection: SettingsSection?
-    private(set) var returnDestination: SidebarItem = .welcome
+    private(set) var returnDestination: SidebarItem = .home
 
     var isPresented: Bool {
         self.selectedSection != nil
@@ -74,7 +87,7 @@ struct SettingsNavigationState: Equatable {
 
     mutating func present(_ section: SettingsSection, returningTo currentDestination: SidebarItem?) {
         if !self.isPresented {
-            self.returnDestination = currentDestination ?? .welcome
+            self.returnDestination = currentDestination?.tideDestination ?? .home
         }
         self.selectedSection = section
     }

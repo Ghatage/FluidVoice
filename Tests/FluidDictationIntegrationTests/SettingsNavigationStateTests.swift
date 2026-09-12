@@ -23,15 +23,15 @@ final class SettingsNavigationStateTests: XCTestCase {
         state.present(.audio, returningTo: .customDictionary)
 
         XCTAssertEqual(state.selectedSection, .audio)
-        XCTAssertEqual(state.returnDestination, .stats)
+        XCTAssertEqual(state.returnDestination, .home)
     }
 
-    func testMissingReturnDestinationFallsBackToGettingStarted() {
+    func testMissingReturnDestinationFallsBackToHome() {
         var state = SettingsNavigationState()
 
         state.present(.general, returningTo: nil)
 
-        XCTAssertEqual(state.dismiss(), .welcome)
+        XCTAssertEqual(state.dismiss(), .home)
     }
 
     func testLeavingForAppDismissesSettings() {
@@ -114,10 +114,16 @@ final class SettingsNavigationStateTests: XCTestCase {
     func testSettingsSectionsHaveStableTitlesAndIcons() {
         XCTAssertEqual(
             SettingsSection.allCases.map(\.title),
-            ["General", "Dictation", "Notifications", "Audio", "Overlay", "Data & Diagnostics", "Experimental"]
+            ["General", "Shortcuts", "Notifications", "Audio", "Overlay", "Data & Privacy", "Experimental"]
         )
         XCTAssertTrue(SettingsSection.allCases.allSatisfy { !$0.systemImage.isEmpty })
         XCTAssertEqual(SettingsSection.overlay.systemImage, "rectangle.on.rectangle")
+    }
+
+    func testTideRoutesLegacyStatsToHomeAndExposesInlineSettings() {
+        XCTAssertEqual(SidebarItem.stats.tideDestination, .home)
+        XCTAssertEqual(SidebarItem.settings(.general).settingsSection, .general)
+        XCTAssertNil(SidebarItem.home.settingsSection)
     }
 
     func testSettingsSearchRanksExactTitleAheadOfRelatedTerms() {

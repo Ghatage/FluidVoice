@@ -155,8 +155,8 @@ struct GlassButtonStyle: ButtonStyle {
         let configuration: ButtonStyle.Configuration
         let height: CGFloat?
 
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: self.theme.metrics.corners.md, style: .continuous)
+        private var shape: Capsule {
+            Capsule(style: .continuous)
         }
 
         var body: some View {
@@ -213,8 +213,8 @@ struct PremiumButtonStyle: ButtonStyle {
         let isRecording: Bool
         let height: CGFloat
 
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: self.theme.metrics.corners.lg, style: .continuous)
+        private var shape: Capsule {
+            Capsule(style: .continuous)
         }
 
         private var baseGradient: LinearGradient {
@@ -244,7 +244,7 @@ struct PremiumButtonStyle: ButtonStyle {
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
                 .frame(height: self.height)
-                .foregroundStyle(self.isRecording ? Color.white : self.theme.palette.primaryText)
+                .foregroundStyle(self.isRecording ? Color.white : self.theme.tide.accentInk)
                 .background(
                     self.shape
                         .fill(self.baseGradient)
@@ -285,8 +285,8 @@ struct SecondaryButtonStyle: ButtonStyle {
         let configuration: ButtonStyle.Configuration
         let height: CGFloat
 
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: self.theme.metrics.corners.lg, style: .continuous)
+        private var shape: Capsule {
+            Capsule(style: .continuous)
         }
 
         var body: some View {
@@ -347,8 +347,8 @@ struct CompactButtonStyle: ButtonStyle {
         let borderColor: Color?
         let height: CGFloat
 
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: self.theme.metrics.corners.sm, style: .continuous)
+        private var shape: Capsule {
+            Capsule(style: .continuous)
         }
 
         var body: some View {
@@ -405,8 +405,8 @@ struct AccentButtonStyle: ButtonStyle {
         let compact: Bool
         let tone: Color?
 
-        private var shape: RoundedRectangle {
-            RoundedRectangle(cornerRadius: self.compact ? 8 : self.theme.metrics.corners.md, style: .continuous)
+        private var shape: Capsule {
+            Capsule(style: .continuous)
         }
 
         var body: some View {
@@ -416,7 +416,7 @@ struct AccentButtonStyle: ButtonStyle {
                 .padding(.horizontal, self.compact ? 12 : self.theme.metrics.spacing.lg)
                 .padding(.vertical, self.compact ? 8 : self.theme.metrics.spacing.md)
                 .frame(minHeight: self.compact ? 32 : 36)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(self.tone == nil ? self.theme.tide.accentInk : Color.white)
                 .background(
                     self.shape
                         .fill(
@@ -470,7 +470,7 @@ struct InlineButtonStyle: ButtonStyle {
                 .fontWeight(.medium)
                 .padding(.horizontal, self.theme.metrics.spacing.md)
                 .padding(.vertical, self.theme.metrics.spacing.xs)
-                .foregroundStyle(Color.white)
+                .foregroundStyle(self.theme.tide.accentInk)
                 .background(
                     self.shape
                         .fill(self.theme.palette.accent.opacity(self.isHovered ? 0.9 : 0.8))

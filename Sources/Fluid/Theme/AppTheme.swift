@@ -5,43 +5,58 @@ import SwiftUI
 struct AppTheme {
     struct TidePalette {
         let bg: Color
+        let side: Color
         let card: Color
         let text: Color
         let muted: Color
         let line: Color
         let accent: Color
         let accentInk: Color
+        let accentDeep: Color
         let accent2: Color
         let accent2Ink: Color
+        let accent2Soft: Color
+        let accent2Deep: Color
         let accentSoft: Color
         let accentHover: Color
+        let page: Color
 
         static let light = TidePalette(
             bg: Color(red: 1.000, green: 0.969, blue: 0.949),
+            side: Color(red: 1.000, green: 0.933, blue: 0.898),
             card: .white,
             text: Color(red: 0.118, green: 0.082, blue: 0.071),
             muted: Color(red: 0.478, green: 0.365, blue: 0.329),
             line: Color(red: 0.118, green: 0.082, blue: 0.071).opacity(0.12),
             accent: Color(red: 1.000, green: 0.361, blue: 0.224),
             accentInk: .white,
+            accentDeep: Color(red: 0.722, green: 0.224, blue: 0.118),
             accent2: Color(red: 0.055, green: 0.486, blue: 0.525),
             accent2Ink: .white,
+            accent2Soft: Color(red: 0.827, green: 0.933, blue: 0.941),
+            accent2Deep: Color(red: 0.039, green: 0.353, blue: 0.380),
             accentSoft: Color(red: 1.000, green: 0.867, blue: 0.824),
-            accentHover: Color(red: 0.929, green: 0.286, blue: 0.157)
+            accentHover: Color(red: 0.929, green: 0.286, blue: 0.157),
+            page: Color(red: 0.953, green: 0.894, blue: 0.859)
         )
 
         static let dark = TidePalette(
             bg: Color(red: 0.102, green: 0.063, blue: 0.051),
+            side: Color(red: 0.082, green: 0.047, blue: 0.035),
             card: Color(red: 0.169, green: 0.102, blue: 0.075),
             text: Color(red: 1.000, green: 0.945, blue: 0.918),
             muted: Color(red: 0.788, green: 0.647, blue: 0.584),
             line: Color(red: 1.000, green: 0.945, blue: 0.918).opacity(0.12),
             accent: Color(red: 1.000, green: 0.478, blue: 0.361),
             accentInk: Color(red: 0.165, green: 0.051, blue: 0.020),
+            accentDeep: Color(red: 1.000, green: 0.690, blue: 0.612),
             accent2: Color(red: 0.282, green: 0.769, blue: 0.812),
             accent2Ink: Color(red: 0.016, green: 0.149, blue: 0.165),
+            accent2Soft: Color(red: 0.059, green: 0.227, blue: 0.243),
+            accent2Deep: Color(red: 0.561, green: 0.878, blue: 0.906),
             accentSoft: Color(red: 0.302, green: 0.125, blue: 0.082),
-            accentHover: Color(red: 1.000, green: 0.361, blue: 0.224)
+            accentHover: Color(red: 1.000, green: 0.361, blue: 0.224),
+            page: Color(red: 0.059, green: 0.031, blue: 0.024)
         )
     }
 
@@ -85,26 +100,26 @@ struct AppTheme {
         let chromeCaption: Font
 
         static let standard = Typography(
-            displayTitle: .system(size: 42, weight: .semibold),
-            statement: .system(size: 17, weight: .regular),
-            title: .system(size: 22, weight: .bold),
-            titleIcon: .system(size: 22, weight: .regular),
-            sectionTitle: .system(size: 15, weight: .semibold),
-            body: .system(size: 14, weight: .regular),
-            bodyStrong: .system(size: 14, weight: .medium),
-            bodySmall: .system(size: 13, weight: .regular),
-            bodySmallStrong: .system(size: 13, weight: .medium),
-            caption: .system(size: 12, weight: .regular),
-            captionStrong: .system(size: 12, weight: .medium),
-            captionSmall: .system(size: 11, weight: .regular),
-            tiny: .system(size: 11, weight: .regular),
-            tinyStrong: .system(size: 11, weight: .bold),
-            badge: .system(size: 11, weight: .semibold),
-            metricTiny: .system(size: 11, weight: .bold, design: .rounded),
-            codeCaption: .system(size: 12, weight: .medium, design: .monospaced),
-            sidebarItem: .system(size: 14, weight: .regular),
-            sidebarSection: .system(size: 12, weight: .medium),
-            chromeCaption: .system(size: 12, weight: .regular)
+            displayTitle: TideOnboardingType.heading(size: 42),
+            statement: TideOnboardingType.body(size: 17),
+            title: TideOnboardingType.heading(size: 22),
+            titleIcon: TideOnboardingType.body(size: 22),
+            sectionTitle: TideOnboardingType.heading(size: 15, weight: .bold),
+            body: TideOnboardingType.body(size: 14),
+            bodyStrong: TideOnboardingType.body(size: 14, weight: .semibold),
+            bodySmall: TideOnboardingType.body(size: 13),
+            bodySmallStrong: TideOnboardingType.body(size: 13, weight: .semibold),
+            caption: TideOnboardingType.body(size: 12),
+            captionStrong: TideOnboardingType.body(size: 12, weight: .semibold),
+            captionSmall: TideOnboardingType.body(size: 11),
+            tiny: TideOnboardingType.body(size: 11),
+            tinyStrong: TideOnboardingType.heading(size: 11, weight: .bold),
+            badge: TideOnboardingType.heading(size: 11, weight: .semibold),
+            metricTiny: TideOnboardingType.heading(size: 11, weight: .bold),
+            codeCaption: TideOnboardingType.mono(size: 12),
+            sidebarItem: TideOnboardingType.heading(size: 14, weight: .bold),
+            sidebarSection: TideOnboardingType.heading(size: 11, weight: .bold),
+            chromeCaption: TideOnboardingType.body(size: 12)
         )
     }
 
@@ -134,9 +149,9 @@ struct AppTheme {
             let pill: CGFloat
 
             static let standard = CornerRadius(
-                sm: 6,
-                md: 10,
-                lg: 16,
+                sm: 16,
+                md: 18,
+                lg: 20,
                 pill: 999
             )
         }
@@ -163,7 +178,7 @@ struct AppTheme {
             static let standard = FormRow(
                 horizontalPadding: 12,
                 verticalPadding: 10,
-                cornerRadius: 8,
+                cornerRadius: 16,
                 materialOpacity: 0.5,
                 borderOpacity: 0.8
             )
@@ -182,7 +197,7 @@ struct AppTheme {
             static let standard = PickerControl(
                 horizontalPadding: 8,
                 verticalPadding: 5,
-                cornerRadius: 6,
+                cornerRadius: 999,
                 borderOpacity: 0.35,
                 searchBorderOpacity: 0.3,
                 disclosureSize: 20,
@@ -326,27 +341,28 @@ struct AppTheme {
         }
     }
 
-    /// Light theme using system colors so macOS accessibility contrast settings stay in control.
-    static func light(accent: Color) -> AppTheme {
-        AppTheme(
+    /// Light Tide theme shared by the app chrome and existing content surfaces.
+    static func light(accent _: Color) -> AppTheme {
+        let tide = TidePalette.light
+        return AppTheme(
             palette: Palette(
-                windowBackground: Color(nsColor: .windowBackgroundColor),
-                contentBackground: Color(nsColor: .controlBackgroundColor),
-                sidebarBackground: Color(nsColor: .windowBackgroundColor),
-                cardBackground: Color(nsColor: .controlBackgroundColor),
-                elevatedCardBackground: Color(nsColor: .windowBackgroundColor),
-                toolbarBackground: Color(nsColor: .windowBackgroundColor),
+                windowBackground: tide.page,
+                contentBackground: tide.bg,
+                sidebarBackground: tide.side,
+                cardBackground: tide.card,
+                elevatedCardBackground: tide.card,
+                toolbarBackground: tide.side,
 
-                cardBorder: Color.black.opacity(0.12),
-                separator: Color(nsColor: .separatorColor),
-                primaryText: Color(nsColor: .labelColor),
-                secondaryText: Color(nsColor: .secondaryLabelColor),
-                tertiaryText: Color(nsColor: .tertiaryLabelColor),
-                accent: accent,
+                cardBorder: tide.line,
+                separator: tide.line,
+                primaryText: tide.text,
+                secondaryText: tide.muted,
+                tertiaryText: tide.muted.opacity(0.72),
+                accent: tide.accent,
                 warning: Color(nsColor: .systemOrange),
-                success: accent
+                success: tide.accent2
             ),
-            tide: .light,
+            tide: tide,
             typography: .standard,
             metrics: Metrics(
                 spacing: .standard,
@@ -370,27 +386,28 @@ struct AppTheme {
         )
     }
 
-    /// Default dark-forward theme tuned for macOS Sonoma / Sequoia aesthetics.
-    static func dark(accent: Color) -> AppTheme {
-        AppTheme(
+    /// Dark Tide theme shared by the app chrome and existing content surfaces.
+    static func dark(accent _: Color) -> AppTheme {
+        let tide = TidePalette.dark
+        return AppTheme(
             palette: Palette(
-                windowBackground: Color(red: 0.07, green: 0.07, blue: 0.07),
-                contentBackground: Color(red: 0.09, green: 0.09, blue: 0.09),
-                sidebarBackground: Color(red: 0.06, green: 0.06, blue: 0.06),
-                cardBackground: Color(red: 0.08, green: 0.08, blue: 0.08),
-                elevatedCardBackground: Color(red: 0.11, green: 0.11, blue: 0.11),
-                toolbarBackground: Color(red: 0.06, green: 0.06, blue: 0.06),
+                windowBackground: tide.page,
+                contentBackground: tide.bg,
+                sidebarBackground: tide.side,
+                cardBackground: tide.card,
+                elevatedCardBackground: tide.card,
+                toolbarBackground: tide.side,
 
-                cardBorder: Color.white.opacity(0.10),
-                separator: Color.white.opacity(0.16),
-                primaryText: Color(nsColor: .labelColor),
-                secondaryText: Color(nsColor: .secondaryLabelColor),
-                tertiaryText: Color(nsColor: .tertiaryLabelColor),
-                accent: accent,
+                cardBorder: tide.line,
+                separator: tide.line,
+                primaryText: tide.text,
+                secondaryText: tide.muted,
+                tertiaryText: tide.muted.opacity(0.72),
+                accent: tide.accent,
                 warning: Color(nsColor: .systemOrange),
-                success: accent
+                success: tide.accent2
             ),
-            tide: .dark,
+            tide: tide,
             typography: .standard,
             metrics: Metrics(
                 spacing: .standard,

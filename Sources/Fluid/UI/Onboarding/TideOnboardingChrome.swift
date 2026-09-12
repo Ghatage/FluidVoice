@@ -1,14 +1,26 @@
 import SwiftUI
 
 enum TideOnboardingType {
-    static let heading = Font.system(size: 44, weight: .heavy, design: .rounded)
-    static let body = Font.system(size: 17, weight: .regular)
+    static func heading(size: CGFloat, weight: Font.Weight = .heavy) -> Font {
+        .system(size: size, weight: weight, design: .rounded)
+    }
+
+    static func body(size: CGFloat, weight: Font.Weight = .regular) -> Font {
+        .system(size: size, weight: weight)
+    }
+
+    static func mono(size: CGFloat, weight: Font.Weight = .medium) -> Font {
+        .system(size: size, weight: weight, design: .monospaced)
+    }
+
+    static let heading = Self.heading(size: 44)
+    static let body = Self.body(size: 17)
     static let button = Font.system(size: 16, weight: .heavy, design: .rounded)
     static let fine = Font.system(size: 13, weight: .regular)
     static let link = Font.system(size: 14, weight: .bold)
     static let kicker = Font.system(size: 13, weight: .bold)
     static let sellingPoint = Font.system(size: 14, weight: .regular)
-    static let mono = Font.system(size: 14, weight: .medium, design: .monospaced)
+    static let mono = Self.mono(size: 14)
     static let percent = Font.system(size: 12, weight: .medium, design: .monospaced)
 }
 
