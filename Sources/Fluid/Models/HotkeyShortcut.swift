@@ -73,11 +73,21 @@ struct HotkeyShortcut: Codable, Equatable {
 
     private static func modifierDisplayParts(for flags: NSEvent.ModifierFlags) -> [String] {
         var parts: [String] = []
-        if flags.contains(.function) { parts.append("🌐") }
-        if flags.contains(.command) { parts.append("⌘") }
-        if flags.contains(.option) { parts.append("⌥") }
-        if flags.contains(.control) { parts.append("⌃") }
-        if flags.contains(.shift) { parts.append("⇧") }
+        if flags.contains(.function) {
+            parts.append("🌐")
+        }
+        if flags.contains(.command) {
+            parts.append("⌘")
+        }
+        if flags.contains(.option) {
+            parts.append("⌥")
+        }
+        if flags.contains(.control) {
+            parts.append("⌃")
+        }
+        if flags.contains(.shift) {
+            parts.append("⇧")
+        }
         return parts
     }
 
@@ -223,7 +233,9 @@ extension HotkeyShortcut {
     var normalizedModifierKeyCodes: [UInt16] {
         guard !self.isMouseShortcut else { return [] }
         let normalized = Self.normalizedModifierKeyCodes(from: self.modifierKeyCodes)
-        if !normalized.isEmpty { return normalized }
+        if !normalized.isEmpty {
+            return normalized
+        }
 
         if self.modifierTriggerFlag != nil, self.relevantModifierFlags.isEmpty {
             return [self.keyCode]

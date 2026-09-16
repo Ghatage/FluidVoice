@@ -149,7 +149,9 @@ enum PrimaryDictationShortcutEdit: Hashable {
     case replace(Int)
 
     var replacementIndex: Int? {
-        if case let .replace(index) = self { return index }
+        if case let .replace(index) = self {
+            return index
+        }
         return nil
     }
 }
@@ -195,7 +197,9 @@ enum ShortcutRecordingTarget: Hashable {
     }
 
     var promptConfigurationKey: String? {
-        if case let .dictationPrompt(key) = self { return key }
+        if case let .dictationPrompt(key) = self {
+            return key
+        }
         return nil
     }
 
@@ -209,7 +213,9 @@ enum ShortcutRecordingTarget: Hashable {
     }
 
     var isPrimaryDictation: Bool {
-        if case .primaryDictation = self { return true }
+        if case .primaryDictation = self {
+            return true
+        }
         return false
     }
 
@@ -1849,33 +1855,32 @@ struct ContentView: View {
         return .minimum(width: window.mainMinWidth, height: window.mainMinHeight)
     }
 
+    @ViewBuilder
     private var microphoneActionButton: some View {
-        Group {
-            if self.asr.micStatus == .notDetermined {
-                Button {
-                    self.asr.requestMicAccess()
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "mic.fill")
-                        Text("Grant Access")
-                            .fontWeight(.medium)
-                    }
+        if self.asr.micStatus == .notDetermined {
+            Button {
+                self.asr.requestMicAccess()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "mic.fill")
+                    Text("Grant Access")
+                        .fontWeight(.medium)
                 }
-                .buttonStyle(GlassButtonStyle())
-                .buttonHoverEffect()
-            } else if self.asr.micStatus == .denied {
-                Button {
-                    self.asr.openSystemSettingsForMic()
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "gear")
-                        Text("Open Settings")
-                            .fontWeight(.medium)
-                    }
-                }
-                .buttonStyle(GlassButtonStyle())
-                .buttonHoverEffect()
             }
+            .buttonStyle(GlassButtonStyle())
+            .buttonHoverEffect()
+        } else if self.asr.micStatus == .denied {
+            Button {
+                self.asr.openSystemSettingsForMic()
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "gear")
+                    Text("Open Settings")
+                        .fontWeight(.medium)
+                }
+            }
+            .buttonStyle(GlassButtonStyle())
+            .buttonHoverEffect()
         }
     }
 
@@ -2063,17 +2068,25 @@ struct ContentView: View {
         guard !trimmed.isEmpty else { return "" }
 
         // Built-in providers use their ID directly
-        if ModelRepository.shared.isBuiltIn(trimmed) { return trimmed }
+        if ModelRepository.shared.isBuiltIn(trimmed) {
+            return trimmed
+        }
         // Saved providers use their stable id with "custom:" prefix (if not already present)
-        if trimmed.hasPrefix("custom:") { return trimmed }
+        if trimmed.hasPrefix("custom:") {
+            return trimmed
+        }
         return "custom:\(trimmed)"
     }
 
     private func updateCurrentProvider() {
         // Map baseURL to canonical key for built-ins; else keep existing
         let url = self.openAIBaseURL.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-        if url.contains("openai.com") { self.currentProvider = "openai"; return }
-        if url.contains("groq.com") { self.currentProvider = "groq"; return }
+        if url.contains("openai.com") {
+            self.currentProvider = "openai"; return
+        }
+        if url.contains("groq.com") {
+            self.currentProvider = "groq"; return
+        }
         // For saved/custom, keep current or derive from selectedProviderID
         self.currentProvider = self.providerKey(for: self.selectedProviderID)
     }
@@ -2454,7 +2467,9 @@ struct ContentView: View {
         // transient overrides such as "Transcribe with Prompt".
         let promptText: String = {
             let override = overrideSystemPrompt?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            if !override.isEmpty { return override }
+            if !override.isEmpty {
+                return override
+            }
             return self.buildSystemPrompt(appInfo: appInfo, dictationSlot: dictationSlot)
         }()
 

@@ -3,22 +3,27 @@ import Foundation
 
 /// Keeps `SearchIndex` equal to the three stores it mirrors.
 ///
-/// Each store publishes its whole array on every change, and `@Published` replays
-/// the current value on subscription, so one subscription per store covers the
-/// launch backfill and every later change with the same code path. The debounce
-/// folds a burst of saves into one reconcile, and reconciles for one kind run in
-/// order so two cannot interleave.
+/// Each store publishes its whole array on every change and replays its current
+/// snapshot on subscription. History waits until its asynchronous load succeeds,
+/// so an incomplete snapshot cannot erase the index. One subscription per store
+/// covers the launch backfill and every later change with the same code path.
+/// The debounce folds a burst of saves into one reconcile, and reconciles for
+/// one kind run in order so two cannot interleave.
 @MainActor
 final class SearchIndexCoordinator {
     static let shared = SearchIndexCoordinator()
 
     private var cancellables: Set<AnyCancellable> = []
     private var pending: [SearchIndexKind: Task<Void, Never>] = [:]
-    private let index = SearchIndex.shared
+    private let index: SearchIndex
 
-    func start() {
+    init(index: SearchIndex = .shared) {
+        self.index = index
+    }
+
+    func start(historyStore: TranscriptionHistoryStore = .shared) {
         guard self.cancellables.isEmpty else { return }
-        self.mirror(.history, TranscriptionHistoryStore.shared.$entries.map { $0.map(\.searchRecord) })
+        self.mirror(.history, historyStore.loadedEntriesPublisher.map { $0.map(\.searchRecord) })
         self.mirror(.transcripts, FileTranscriptionHistoryStore.shared.$entries.map { $0.map(\.searchRecord) })
         self.mirror(.chats, ChatHistoryStore.shared.$sessions.map { $0.compactMap(\.searchRecord) })
     }

@@ -142,11 +142,15 @@ struct DictionaryAPIController: LocalAPIRouteHandler {
                 }
 
                 stored.removeAll { existing in
-                    if let id = entry.id, existing.id == id { return true }
+                    if let id = entry.id, existing.id == id {
+                        return true
+                    }
                     return existing.replacement.caseInsensitiveCompare(normalized.replacement) == .orderedSame
                 }
                 incomingEntries.removeAll { existing in
-                    if let id = entry.id, existing.id == id { return true }
+                    if let id = entry.id, existing.id == id {
+                        return true
+                    }
                     return existing.replacement.caseInsensitiveCompare(normalized.replacement) == .orderedSame
                 }
                 incomingEntries.append(normalized)

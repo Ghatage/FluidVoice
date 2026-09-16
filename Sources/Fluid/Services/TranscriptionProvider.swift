@@ -174,12 +174,21 @@ protocol TranscriptionProvider {
     var shouldClearCacheAfterCancellation: Bool { get }
 }
 
-// Default implementation for optional methods
+/// Default implementation for optional methods
 extension TranscriptionProvider {
-    func modelsExistOnDisk() -> Bool { return false }
+    func modelsExistOnDisk() -> Bool {
+        return false
+    }
+
     func clearCache() async throws {}
-    var shouldClearCacheAfterCancellation: Bool { true }
-    var prefersNativeFileTranscription: Bool { false }
+    var shouldClearCacheAfterCancellation: Bool {
+        true
+    }
+
+    var prefersNativeFileTranscription: Bool {
+        false
+    }
+
     func transcribeStreaming(_ samples: [Float]) async throws -> ASRTranscriptionResult {
         try await self.transcribe(samples)
     }

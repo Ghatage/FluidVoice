@@ -9,8 +9,8 @@ nonisolated struct MediaPlaybackSnapshot: Equatable, Sendable {
     let title: String?
     let isPlaying: Bool?
 
-    // Safari exposes its WebKit media process, not a tab ID. This comparison
-    // can reject a changed player/item, but cannot prove exact-tab identity.
+    /// Safari exposes its WebKit media process, not a tab ID. This comparison
+    /// can reject a changed player/item, but cannot prove exact-tab identity.
     func matches(_ other: Self) -> Bool {
         self.bundleIdentifier == other.bundleIdentifier &&
             self.processID == other.processID && self.title == other.title
@@ -57,7 +57,9 @@ final nonisolated class MediaPlaybackProcessTransport: MediaPlaybackTransport, @
 
     func send(_ command: MediaPlaybackCommand) async -> MediaPlaybackCommandResult {
         let result = await self.invoke(command.rawValue, timeout: Self.commandTimeoutSeconds)
-        if let failure = result.failure { return .failed(failure) }
+        if let failure = result.failure {
+            return .failed(failure)
+        }
         return .helperCompleted
     }
 
@@ -175,13 +177,17 @@ nonisolated enum MediaHelperProcess {
         errors.fileHandleForReading.readabilityHandler = nil
         let data = outputBuffer.finish(output.fileHandleForReading)
         let stderr = errorBuffer.finish(errors.fileHandleForReading)
-        if timedOut { return MediaHelperResult(output: data, failure: "helper_timeout") }
+        if timedOut {
+            return MediaHelperResult(output: data, failure: "helper_timeout")
+        }
         if process.terminationStatus != 0 {
             let message = (String(bytes: stderr.prefix(512), encoding: .utf8) ?? "invalid_utf8")
                 .replacingOccurrences(of: "\n", with: " ")
             return MediaHelperResult(output: data, failure: "helper_exit_\(process.terminationStatus):\(message)")
         }
-        if outputBuffer.overflowed { return MediaHelperResult(output: Data(), failure: "output_limit") }
+        if outputBuffer.overflowed {
+            return MediaHelperResult(output: Data(), failure: "output_limit")
+        }
         return MediaHelperResult(output: data, failure: nil)
     }
 }
@@ -192,7 +198,9 @@ private final nonisolated class MediaHelperDeadline: @unchecked Sendable {
     private var finished = false
     private var expired = false
 
-    init(process: Process) { self.process = process }
+    init(process: Process) {
+        self.process = process
+    }
 
     func expire() {
         self.lock.lock()
@@ -217,7 +225,9 @@ private final nonisolated class MediaHelperBuffer: @unchecked Sendable {
     private var data = Data()
     private var didOverflow = false
 
-    init(limit: Int) { self.limit = limit }
+    init(limit: Int) {
+        self.limit = limit
+    }
 
     var overflowed: Bool {
         self.lock.lock()
@@ -229,7 +239,9 @@ private final nonisolated class MediaHelperBuffer: @unchecked Sendable {
         self.lock.lock()
         defer { self.lock.unlock() }
         let chunk = handle.availableData
-        if chunk.isEmpty { handle.readabilityHandler = nil }
+        if chunk.isEmpty {
+            handle.readabilityHandler = nil
+        }
         self.append(chunk)
     }
 
@@ -244,7 +256,9 @@ private final nonisolated class MediaHelperBuffer: @unchecked Sendable {
 
     private func append(_ chunk: Data) {
         let remaining = self.limit - self.data.count
-        if chunk.count > remaining { self.didOverflow = true }
+        if chunk.count > remaining {
+            self.didOverflow = true
+        }
         self.data.append(chunk.prefix(remaining))
     }
 }

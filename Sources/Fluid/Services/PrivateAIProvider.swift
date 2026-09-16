@@ -65,7 +65,9 @@ struct PrivateAIModelDownloadProgress: Sendable, Equatable {
 
 enum PrivateAIModelDownloadProgressText {
     static func buttonTitle(for progress: PrivateAIModelDownloadProgress?) -> String {
-        if progress?.isComplete == true { return "Verifying" }
+        if progress?.isComplete == true {
+            return "Verifying"
+        }
         guard let fraction = progress?.fractionCompleted else { return "Downloading" }
         return "Downloading \(Int(fraction * 100))%"
     }
@@ -142,7 +144,10 @@ struct PrivateAIModelUpdateToken: Sendable, Hashable {
 }
 
 struct PrivateAIRegisteredModel: Sendable, Codable, Hashable, Identifiable {
-    var id: String { self.artifact.identifier }
+    var id: String {
+        self.artifact.identifier
+    }
+
     var displayName: String
     var detail: String
     var isEnabled: Bool
@@ -291,7 +296,9 @@ extension PrivateAIIntegrationProviding {
         return [URL(fileURLWithPath: path)]
     }
 
-    func inactiveInstalledModelURLs(keeping _: PrivateAIRegisteredModel) -> [URL] { [] }
+    func inactiveInstalledModelURLs(keeping _: PrivateAIRegisteredModel) -> [URL] {
+        []
+    }
 
     func prepareModel(_ model: PrivateAIRegisteredModel) async throws -> URL {
         try await self.prepareModel(model, progressHandler: nil)
@@ -462,16 +469,36 @@ private struct UnavailablePrivateAIProviderFeature: PrivateAIProviderFeatureProv
     let boostDefaultsKey = "PrivateAIProviderBoostEnabled"
     let modelDirectoryName = "PrivateAIProvider"
 
-    func modelIDs() -> [String] { [] }
-    func model(id _: String) -> PrivateAIRegisteredModel? { nil }
-    func canonicalModelID(for _: String) -> String? { nil }
-    func isKnownModelID(_: String) -> Bool { false }
+    func modelIDs() -> [String] {
+        []
+    }
+
+    func model(id _: String) -> PrivateAIRegisteredModel? {
+        nil
+    }
+
+    func canonicalModelID(for _: String) -> String? {
+        nil
+    }
+
+    func isKnownModelID(_: String) -> Bool {
+        false
+    }
 }
 
 private struct UnavailablePrivateAIIntegrationProvider: PrivateAIIntegrationProviding {
-    var configuredModelID: String { PrivateAIModelRegistry.defaultModelID }
-    var selectedModel: PrivateAIRegisteredModel { PrivateAIModelRegistry.defaultModel }
-    var configuredLocalModelPath: String? { nil }
+    var configuredModelID: String {
+        PrivateAIModelRegistry.defaultModelID
+    }
+
+    var selectedModel: PrivateAIRegisteredModel {
+        PrivateAIModelRegistry.defaultModel
+    }
+
+    var configuredLocalModelPath: String? {
+        nil
+    }
+
     var modelDirectoryURL: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first?
@@ -484,14 +511,21 @@ private struct UnavailablePrivateAIIntegrationProvider: PrivateAIIntegrationProv
             .appendingPathComponent("Models", isDirectory: true)
     }
 
-    var isLocalRuntimeConfigured: Bool { false }
+    var isLocalRuntimeConfigured: Bool {
+        false
+    }
 
     func expectedLocalModelURL(for model: PrivateAIRegisteredModel) -> URL {
         PrivateAIModelRegistry.localModelURL(for: model, directoryURL: self.modelDirectoryURL)
     }
 
-    func localModelPath(for _: PrivateAIRegisteredModel) -> String? { nil }
-    func isModelInstalled(_: PrivateAIRegisteredModel) -> Bool { false }
+    func localModelPath(for _: PrivateAIRegisteredModel) -> String? {
+        nil
+    }
+
+    func isModelInstalled(_: PrivateAIRegisteredModel) -> Bool {
+        false
+    }
 
     func prepareModel(
         _: PrivateAIRegisteredModel,
@@ -500,7 +534,9 @@ private struct UnavailablePrivateAIIntegrationProvider: PrivateAIIntegrationProv
         throw PrivateAIUnavailableError()
     }
 
-    func shouldHandleDictation(model _: String) -> Bool { false }
+    func shouldHandleDictation(model _: String) -> Bool {
+        false
+    }
 
     func status(for _: PrivateAIIntegrationService.RuntimeConfiguration) async -> PrivateAIStatus {
         PrivateAIStatus(
@@ -509,7 +545,9 @@ private struct UnavailablePrivateAIIntegrationProvider: PrivateAIIntegrationProv
         )
     }
 
-    func loadedModelState() async -> PrivateAIIntegrationService.LoadedModelState? { nil }
+    func loadedModelState() async -> PrivateAIIntegrationService.LoadedModelState? {
+        nil
+    }
 
     func loadModel(_: PrivateAIRegisteredModel) async throws -> PrivateAIStatus {
         throw PrivateAIUnavailableError()

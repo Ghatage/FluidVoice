@@ -1,5 +1,6 @@
 @testable import FluidVoice_Debug
 import Foundation
+import SQLite3
 import XCTest
 import ZeppelinEmbed
 
@@ -29,11 +30,11 @@ final class SearchIndexTests: XCTestCase {
     }
 
     private func ids(_ kind: SearchIndexKind, query: String) async throws -> Set<UUID> {
-        Set(try await self.index.query(kind, text: query, limit: 50).map(\.id))
+        try Set(await self.index.query(kind, text: query, limit: 50).map(\.id))
     }
 
     private func count(_ kind: SearchIndexKind) async throws -> Int {
-        Int(try await self.index.namespace(kind).count().count)
+        try Int(await self.index.namespace(kind).count().count)
     }
 
     // MARK: - Reconcile
@@ -175,5 +176,199 @@ final class SearchIndexTests: XCTestCase {
         XCTAssertEqual(record.revision, 1_700_000_000_500)
         XCTAssertEqual(record.text, "Disk space\nhow full is the disk\ndf -h")
         XCTAssertNil(ChatSession(id: "not-a-uuid").searchRecord)
+    }
+}
+
+/// Exercises startup through the real history writer, coordinator and Zeppelin queries.
+@MainActor
+final class SearchIndexCoordinatorTests: XCTestCase {
+    private struct Fixture {
+        let root: URL
+        let defaults: UserDefaults
+        let writer: TranscriptionHistoryWriter
+        let index: SearchIndex
+
+        var historyURL: URL {
+            self.root.appendingPathComponent("history.sqlite3")
+        }
+    }
+
+    private func withFixture(_ body: (Fixture) async throws -> Void) async throws {
+        let root = FileManager.default.temporaryDirectory
+            .appendingPathComponent("SearchIndexCoordinatorTests-\(UUID().uuidString)", isDirectory: true)
+        let suite = "SearchIndexCoordinatorTests-\(UUID().uuidString)"
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer {
+            defaults.removePersistentDomain(forName: suite)
+            try? FileManager.default.removeItem(at: root)
+        }
+        let writer = TranscriptionHistoryWriter(defaults: defaults, url: root.appendingPathComponent("history.sqlite3"))
+        let fixture = Fixture(
+            root: root,
+            defaults: defaults,
+            writer: writer,
+            index: SearchIndex(root: FluidZeppelinRoot(root: root.appendingPathComponent("search")))
+        )
+        do {
+            try await body(fixture)
+        } catch {
+            _ = await writer.drain()
+            throw error
+        }
+        _ = await writer.drain()
+    }
+
+    private func entry(_ text: String) -> TranscriptionHistoryEntry {
+        TranscriptionHistoryEntry(
+            rawText: text, processedText: text, appName: "Test", windowTitle: "Test", wasAIProcessed: false
+        )
+    }
+
+    private func indexedIDs(_ index: SearchIndex) async throws -> Set<UUID> {
+        // Check emptiness directly before exercising lexical lookup.
+        let recordCount = try await index.namespace(.history).count().count
+        guard recordCount > 0 else { return [] }
+        return try Set(await index.query(.history, text: "startup", limit: 50).map(\.id))
+    }
+
+    private func waitForIndexedIDs(_ expected: Set<UUID>, in index: SearchIndex) async throws {
+        let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+        var actual = try await self.indexedIDs(index)
+        while actual != expected, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(25))
+            actual = try await self.indexedIDs(index)
+        }
+        XCTAssertEqual(actual, expected)
+    }
+
+    func testSlowStartupKeepsExistingIndexUntilHistoryLoads() async throws {
+        try await self.withFixture { fixture in
+            let saved = self.entry("startup saved dictation")
+            let stale = self.entry("startup stale index record")
+            try fixture.defaults.set(JSONEncoder().encode([saved]), forKey: "TranscriptionHistoryEntries")
+            try await fixture.index.reconcile(.history, with: [saved.searchRecord, stale.searchRecord])
+
+            // The initial migration needs a write lock. Hold it longer than the 250 ms debounce.
+            _ = try TranscriptionHistoryDatabase(url: fixture.historyURL)
+            var connection: OpaquePointer?
+            XCTAssertEqual(sqlite3_open(fixture.historyURL.path, &connection), SQLITE_OK)
+            let database = try XCTUnwrap(connection)
+            defer { sqlite3_close(database) }
+            XCTAssertEqual(sqlite3_exec(database, "BEGIN IMMEDIATE", nil, nil, nil), SQLITE_OK)
+            defer { sqlite3_exec(database, "ROLLBACK", nil, nil, nil) }
+
+            let history = TranscriptionHistoryStore(writer: fixture.writer)
+            let coordinator = SearchIndexCoordinator(index: fixture.index)
+            defer { withExtendedLifetime(coordinator) {} }
+            coordinator.start(historyStore: history)
+
+            try await Task.sleep(for: .milliseconds(700))
+            XCTAssertTrue(history.isLoading, "The fixture must keep loading beyond the debounce")
+            let duringLoad = try await self.indexedIDs(fixture.index)
+            XCTAssertEqual(duringLoad, [saved.id, stale.id], "An incomplete startup snapshot must not delete indexed history")
+
+            XCTAssertEqual(sqlite3_exec(database, "COMMIT", nil, nil, nil), SQLITE_OK)
+            try await history.waitUntilLoaded()
+            try await self.waitForIndexedIDs([saved.id], in: fixture.index)
+        }
+    }
+
+    func testFailedLoadAndEditsPreserveIndexUntilRetryMergesCompleteHistory() async throws {
+        try await self.withFixture { fixture in
+            let saved = self.entry("startup saved dictation")
+            let deleted = self.entry("startup deleted while unavailable")
+            let stale = self.entry("startup stale index record")
+            let pending = self.entry("startup new dictation")
+            fixture.defaults.set(Data("invalid JSON".utf8), forKey: "TranscriptionHistoryEntries")
+            try await fixture.index.reconcile(.history, with: [saved, deleted, stale].map(\.searchRecord))
+
+            let history = TranscriptionHistoryStore(writer: fixture.writer)
+            let coordinator = SearchIndexCoordinator(index: fixture.index)
+            defer { withExtendedLifetime(coordinator) {} }
+            coordinator.start(historyStore: history)
+            do {
+                try await history.waitUntilLoaded()
+                XCTFail("The corrupt history fixture must fail to load")
+            } catch {}
+            XCTAssertFalse(history.isLoading)
+            XCTAssertNotNil(history.persistenceError)
+
+            try await Task.sleep(for: .milliseconds(700))
+            let afterFailure = try await self.indexedIDs(fixture.index)
+            XCTAssertEqual(afterFailure, [saved.id, deleted.id, stale.id])
+
+            history.addEntry(
+                id: pending.id,
+                timestamp: pending.timestamp,
+                rawText: pending.rawText,
+                processedText: pending.processedText,
+                appName: pending.appName,
+                windowTitle: pending.windowTitle
+            )
+            history.deleteEntry(id: deleted.id)
+            try await Task.sleep(for: .milliseconds(700))
+            let afterEdits = try await self.indexedIDs(fixture.index)
+            XCTAssertEqual(afterEdits, [saved.id, deleted.id, stale.id], "Edits after a failed load are still an incomplete snapshot")
+
+            try fixture.defaults.set(JSONEncoder().encode([saved, deleted]), forKey: "TranscriptionHistoryEntries")
+            history.retryPersistence()
+            try await history.waitUntilLoaded()
+            XCTAssertNil(history.persistenceError)
+            XCTAssertEqual(Set(history.entries.map(\.id)), [saved.id, pending.id])
+            try await self.waitForIndexedIDs([saved.id, pending.id], in: fixture.index)
+            await history.finishPendingWrites()
+        }
+    }
+
+    func testSuccessfulEmptyLoadDeletesStaleIndexRecords() async throws {
+        try await self.withFixture { fixture in
+            let stale = self.entry("startup stale index record")
+            try await fixture.index.reconcile(.history, with: [stale.searchRecord])
+            let history = TranscriptionHistoryStore(writer: fixture.writer)
+            let coordinator = SearchIndexCoordinator(index: fixture.index)
+            defer { withExtendedLifetime(coordinator) {} }
+            coordinator.start(historyStore: history)
+
+            try await history.waitUntilLoaded()
+            XCTAssertTrue(history.entries.isEmpty)
+            try await self.waitForIndexedIDs([], in: fixture.index)
+        }
+    }
+
+    func testClearingLoadedHistoryDeletesIndexedRecords() async throws {
+        try await self.withFixture { fixture in
+            let saved = self.entry("startup saved dictation")
+            try fixture.defaults.set(JSONEncoder().encode([saved]), forKey: "TranscriptionHistoryEntries")
+            try await fixture.index.reconcile(.history, with: [saved.searchRecord])
+            // The isolated history has no audio; never clear the user's shared audio directory.
+            let history = TranscriptionHistoryStore(writer: fixture.writer, deleteAllAudioFiles: {})
+            let coordinator = SearchIndexCoordinator(index: fixture.index)
+            defer { withExtendedLifetime(coordinator) {} }
+            coordinator.start(historyStore: history)
+
+            try await history.waitUntilLoaded()
+            try await Task.sleep(for: .milliseconds(700))
+            let beforeClear = try await self.indexedIDs(fixture.index)
+            XCTAssertEqual(beforeClear, [saved.id])
+            history.clearAllHistory()
+            try await self.waitForIndexedIDs([], in: fixture.index)
+            await history.finishPendingWrites()
+        }
+    }
+
+    func testSubscribingAfterLoadingIndexesCurrentSnapshot() async throws {
+        try await self.withFixture { fixture in
+            let saved = self.entry("startup saved dictation")
+            let stale = self.entry("startup stale index record")
+            try fixture.defaults.set(JSONEncoder().encode([saved]), forKey: "TranscriptionHistoryEntries")
+            try await fixture.index.reconcile(.history, with: [stale.searchRecord])
+            let history = TranscriptionHistoryStore(writer: fixture.writer)
+            try await history.waitUntilLoaded()
+
+            let coordinator = SearchIndexCoordinator(index: fixture.index)
+            defer { withExtendedLifetime(coordinator) {} }
+            coordinator.start(historyStore: history)
+            try await self.waitForIndexedIDs([saved.id], in: fixture.index)
+        }
     }
 }

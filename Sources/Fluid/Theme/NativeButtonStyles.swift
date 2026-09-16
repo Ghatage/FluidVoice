@@ -7,7 +7,9 @@ enum FluidInteractionVisuals {
     static let pressedAnimation: Animation = .spring(response: 0.2, dampingFraction: 0.8)
 
     static func scale(isPressed: Bool, isHovered: Bool) -> CGFloat {
-        if isPressed { return self.pressedScale }
+        if isPressed {
+            return self.pressedScale
+        }
         return isHovered ? self.hoverScale : 1
     }
 }
@@ -569,7 +571,6 @@ struct SearchablePickerControlChrome: ViewModifier {
     let usesMaterial: Bool
     let showsShadow: Bool
 
-    @ViewBuilder
     func body(content: Content) -> some View {
         let picker = self.theme.metrics.pickerControl
         let shape = RoundedRectangle(cornerRadius: picker.cornerRadius, style: .continuous)

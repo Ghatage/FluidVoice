@@ -692,7 +692,9 @@ extension AIEnhancementSettingsView {
 
     private func promptEditorShortcutRow(mode: PromptEditorMode) -> some View {
         let isNewPrompt: Bool = {
-            if case .newPrompt = mode { return true }
+            if case .newPrompt = mode {
+                return true
+            }
             return false
         }()
         let selection = self.promptEditorSelection(for: mode)
@@ -1461,7 +1463,7 @@ extension AIEnhancementSettingsView {
         if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) {
             Image(nsImage: NSWorkspace.shared.icon(forFile: url.path))
                 .resizable()
-                .aspectRatio(contentMode: .fit)
+                .scaledToFit()
                 .frame(width: 24, height: 24)
                 .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
         } else {

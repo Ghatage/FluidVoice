@@ -33,7 +33,9 @@ enum PasteKeyCodeResolver {
                     &length,
                     &characters
                 )
-                if status == noErr, length == 1, characters[0] == 118 { return key }
+                if status == noErr, length == 1, characters[0] == 118 {
+                    return key
+                }
             }
             return 9
         }

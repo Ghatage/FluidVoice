@@ -34,7 +34,9 @@ actor AudioStartupGate {
 
     /// Await until the gate is open. Returns immediately if already open.
     func waitUntilOpen() async {
-        if self.isOpen { return }
+        if self.isOpen {
+            return
+        }
 
         await withCheckedContinuation { cont in
             self.waiters.append(cont)

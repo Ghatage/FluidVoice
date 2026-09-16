@@ -341,7 +341,9 @@ struct TranscriptionHistoryView: View {
         Divider()
 
         Button(role: .destructive) {
-            if self.audioEntryID == entry.id { self.audioEntryID = nil }
+            if self.audioEntryID == entry.id {
+                self.audioEntryID = nil
+            }
             self.historyStore.deleteEntry(id: entry.id)
             if self.selectedEntryID == entry.id {
                 self.selectedEntryID = self.filteredEntries.first(where: { $0.id != entry.id })?.id

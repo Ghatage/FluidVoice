@@ -10,8 +10,13 @@ protocol AudioDeviceManaging {
 }
 
 extension AudioDeviceManaging {
-    var isClamshellClosed: Bool { false }
-    func isInputDeviceUsable(_: AudioDevice.Device) -> Bool { true }
+    var isClamshellClosed: Bool {
+        false
+    }
+
+    func isInputDeviceUsable(_: AudioDevice.Device) -> Bool {
+        true
+    }
 }
 
 struct CoreAudioDeviceManager: AudioDeviceManaging {

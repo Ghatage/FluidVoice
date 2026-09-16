@@ -16,7 +16,7 @@ final class CommandModeService: ObservableObject {
     private var currentTurnCount = 0
     private let maxTurns = 20
 
-    // Flag to enable notch output display
+    /// Flag to enable notch output display
     var enableNotchOutput: Bool = true
 
     // Streaming UI update throttling - adaptive rate based on content length
@@ -296,7 +296,9 @@ final class CommandModeService: ObservableObject {
             }
 
             // Skip tool outputs in notch (they're verbose)
-            if msg.role == .tool { continue }
+            if msg.role == .tool {
+                continue
+            }
 
             NotchContentState.shared.addCommandMessage(role: role, content: msg.content)
         }

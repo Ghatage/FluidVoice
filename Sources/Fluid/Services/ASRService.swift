@@ -207,8 +207,13 @@ final class RecordingBufferHandoffGate {
     private var waiters: [CheckedContinuation<Void, Never>] = []
     private(set) var isRecovering = false
 
-    var isActive: Bool { self.activeToken != nil }
-    var pendingWaiterCount: Int { self.waiters.count }
+    var isActive: Bool {
+        self.activeToken != nil
+    }
+
+    var pendingWaiterCount: Int {
+        self.waiters.count
+    }
 
     func begin() -> Token? {
         guard self.activeToken == nil else { return nil }
@@ -253,9 +258,17 @@ final class StreamingTaskLifecycle {
     private var active: (sessionID: Int, operationID: UUID, task: Task<Void, Never>)?
     private var drainWaiters: [UUID: (operationID: UUID, continuation: CheckedContinuation<Bool, Never>, timer: Task<Void, Never>)] = [:]
 
-    var hasScheduledIdleWork: Bool { self.scheduler != nil }
-    var hasActiveWork: Bool { self.active != nil }
-    var pendingDrainCount: Int { self.drainWaiters.count }
+    var hasScheduledIdleWork: Bool {
+        self.scheduler != nil
+    }
+
+    var hasActiveWork: Bool {
+        self.active != nil
+    }
+
+    var pendingDrainCount: Int {
+        self.drainWaiters.count
+    }
 
     @discardableResult
     func schedule(
@@ -628,13 +641,21 @@ final class ASRService: ObservableObject {
 
     /// Returns a user-friendly status message for model loading state
     var modelStatusMessage: String {
-        if self.isAsrReady { return "Model ready" }
-        if self.isCancellingModelPreparation { return "Cancelling model preparation..." }
-        if self.isCancellingModelDownload { return "Cancelling model download..." }
+        if self.isAsrReady {
+            return "Model ready"
+        }
+        if self.isCancellingModelPreparation {
+            return "Cancelling model preparation..."
+        }
+        if self.isCancellingModelDownload {
+            return "Cancelling model download..."
+        }
         if self.downloadingModelId != nil || self.isDownloadingModel || self.isLoadingModel {
             return self.modelPreparationStatusText
         }
-        if self.modelsExistOnDisk { return "Model cached, needs loading" }
+        if self.modelsExistOnDisk {
+            return "Model cached, needs loading"
+        }
         return "Model not downloaded"
     }
 
@@ -652,8 +673,12 @@ final class ASRService: ObservableObject {
         case .loading:
             return "Loading voice engine..."
         case nil:
-            if self.isDownloadingModel { return "Preparing model..." }
-            if self.isLoadingModel { return "Loading voice engine..." }
+            if self.isDownloadingModel {
+                return "Preparing model..."
+            }
+            if self.isLoadingModel {
+                return "Loading voice engine..."
+            }
             return "Preparing model..."
         }
     }
@@ -819,7 +844,9 @@ final class ASRService: ObservableObject {
     }
 
     private func getNemotronProvider(mode: NemotronProvider.Mode) -> NemotronProvider {
-        if let existing = self.nemotronProviders[mode] { return existing }
+        if let existing = self.nemotronProviders[mode] {
+            return existing
+        }
         let provider = NemotronProvider(mode: mode)
         self.nemotronProviders[mode] = provider
         DebugLogger.shared.info("ASRService: Created \(provider.name) provider", source: "ASRService")
@@ -5245,12 +5272,16 @@ final class ASRService: ObservableObject {
     }
 
     private func errorSummary(from error: Error?) -> String {
-        if let error { return error.localizedDescription }
+        if let error {
+            return error.localizedDescription
+        }
         return "Unknown error"
     }
 
     private nonisolated static func isModelPreparationCancellation(_ error: Error) -> Bool {
-        if error is CancellationError { return true }
+        if error is CancellationError {
+            return true
+        }
         let nsError = error as NSError
         return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
     }
@@ -6170,7 +6201,9 @@ private final nonisolated class AudioCapturePipeline: @unchecked Sendable {
     }
 
     #if DEBUG
-    var isRecordingEnabledForTesting: Bool { self.lock.withLock { self.recordingEnabled } }
+    var isRecordingEnabledForTesting: Bool {
+        self.lock.withLock { self.recordingEnabled }
+    }
     #endif
 
     func setLevelMonitoringEnabled(_ enabled: Bool) {

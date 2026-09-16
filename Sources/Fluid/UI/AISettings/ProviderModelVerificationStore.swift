@@ -26,7 +26,9 @@ final class ProviderModelVerificationStore {
         return SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
     }
 
-    func contains(_ identity: String) -> Bool { self.successes[identity] != nil }
+    func contains(_ identity: String) -> Bool {
+        self.successes[identity] != nil
+    }
 
     func recordSuccess(_ identity: String, now: Date = Date()) {
         self.successes[identity] = now.timeIntervalSince1970

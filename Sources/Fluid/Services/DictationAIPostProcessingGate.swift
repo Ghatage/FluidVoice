@@ -80,8 +80,12 @@ enum DictationAIPostProcessingGate {
     static func providerKey(for providerID: String) -> String {
         let trimmed = providerID.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }
-        if ModelRepository.shared.isBuiltIn(trimmed) { return trimmed }
-        if trimmed.hasPrefix("custom:") { return trimmed }
+        if ModelRepository.shared.isBuiltIn(trimmed) {
+            return trimmed
+        }
+        if trimmed.hasPrefix("custom:") {
+            return trimmed
+        }
         return "custom:\(trimmed)"
     }
 
@@ -103,8 +107,12 @@ enum DictationAIPostProcessingGate {
         guard let url = URL(string: urlString), let host = url.host else { return false }
         let hostLower = host.lowercased()
 
-        if hostLower == "localhost" || hostLower == "127.0.0.1" { return true }
-        if hostLower.hasPrefix("127.") || hostLower.hasPrefix("10.") || hostLower.hasPrefix("192.168.") { return true }
+        if hostLower == "localhost" || hostLower == "127.0.0.1" {
+            return true
+        }
+        if hostLower.hasPrefix("127.") || hostLower.hasPrefix("10.") || hostLower.hasPrefix("192.168.") {
+            return true
+        }
 
         if hostLower.hasPrefix("172.") {
             let components = hostLower.split(separator: ".")

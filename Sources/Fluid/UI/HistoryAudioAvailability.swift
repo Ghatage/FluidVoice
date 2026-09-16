@@ -10,7 +10,9 @@ nonisolated enum HistoryAudioAvailability {
             var available: Set<String> = []
             for fileName in Set(fileNames) {
                 guard !Task.isCancelled else { return Set<String>() }
-                if exists(fileName) { available.insert(fileName) }
+                if exists(fileName) {
+                    available.insert(fileName)
+                }
             }
             return available
         }

@@ -788,7 +788,9 @@ final nonisolated class DirectCoreAudioLifecycleController: @unchecked Sendable 
         return snapshot
     }
 
-    var isRecoveringHardware: Bool { self.hardwareOperations.isAvailable == false }
+    var isRecoveringHardware: Bool {
+        self.hardwareOperations.isAvailable == false
+    }
 
     func waitForHardwareAvailability() async -> Bool {
         await self.hardwareOperations.waitUntilAvailable(timeout: self.recoveryTimeout)
@@ -857,7 +859,9 @@ final nonisolated class DirectCoreAudioLifecycleController: @unchecked Sendable 
                         self.topologyRecoveryCheckPending = false
                         return revision != self.hardwareTopologyRevision
                     }
-                    if changedAgain { self.scheduleFailedHardwareCheck() }
+                    if changedAgain {
+                        self.scheduleFailedHardwareCheck()
+                    }
                 }
                 guard self.isShutDown == false,
                       self.snapshotLock.withLock({ self.shutdownRequested == false && revision == self.hardwareTopologyRevision }),
@@ -1546,9 +1550,13 @@ final nonisolated class DirectCoreAudioLifecycleController: @unchecked Sendable 
         let snapshot = self.snapshotLock.withLock { self.storedSnapshot }
         guard generation == snapshot.generation else { return }
         let action = self.stoppedHardwareLock.withLock {
-            if hardwareIsKnownStopped { self.stoppedHardwareGenerations.insert(generation) }
+            if hardwareIsKnownStopped {
+                self.stoppedHardwareGenerations.insert(generation)
+            }
             let report = reason != "io_stopped_abnormally" || self.lastReportedAbnormalStopGeneration != generation
-            if reason == "io_stopped_abnormally" { self.lastReportedAbnormalStopGeneration = generation }
+            if reason == "io_stopped_abnormally" {
+                self.lastReportedAbnormalStopGeneration = generation
+            }
             let enqueue = self.pendingFormatInvalidationGenerations.insert(generation).inserted
             return (report, enqueue)
         }
@@ -1667,7 +1675,9 @@ final nonisolated class DirectCoreAudioLifecycleController: @unchecked Sendable 
         )
         // An object removed from HAL is gone; other unreadable results are
         // unknown and must not authorize replacement after failed teardown.
-        if status == kAudioHardwareBadDeviceError || status == kAudioHardwareBadObjectError { return false }
+        if status == kAudioHardwareBadDeviceError || status == kAudioHardwareBadObjectError {
+            return false
+        }
         guard status == noErr, size == UInt32(MemoryLayout<UInt32>.size) else {
             return nil
         }

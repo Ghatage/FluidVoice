@@ -72,7 +72,9 @@ final class NotchOverlayManager {
 
     /// Track if bottom overlay is visible
     private(set) var isBottomOverlayVisible: Bool = false
-    var isOverlayVisible: Bool { self.state == .visible }
+    var isOverlayVisible: Bool {
+        self.state == .visible
+    }
 
     // Callbacks for command output interaction
     var onCommandOutputDismiss: (() -> Void)?

@@ -13,7 +13,9 @@ struct PronunciationDictionaryProfile: Codable, Equatable, Identifiable, Sendabl
     let hiddenSize: Int
     var enrollments: [PronunciationEnrollmentCapture]
 
-    var id: String { "\(self.dictionaryEntryID.uuidString):\(self.modelKey)" }
+    var id: String {
+        "\(self.dictionaryEntryID.uuidString):\(self.modelKey)"
+    }
 }
 
 enum PronunciationDictionaryStoreError: LocalizedError, Equatable {

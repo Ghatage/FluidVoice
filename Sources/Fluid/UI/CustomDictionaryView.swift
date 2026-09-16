@@ -2447,7 +2447,9 @@ struct CustomDictionaryView: View {
 }
 
 private extension CustomDictionaryView {
-    var asr: ASRService { self.appServices.asr }
+    var asr: ASRService {
+        self.appServices.asr
+    }
 
     var trainedReplacementButtonTitle: String {
         self.trainingAlreadyCorrectWithoutReplacement ? "Nothing to Save" : "Add Replacement"
@@ -2733,7 +2735,9 @@ private enum DictionaryComposerMode: CaseIterable, Identifiable {
     case train
     case manual
 
-    var id: Self { self }
+    var id: Self {
+        self
+    }
 
     var title: String {
         switch self {
@@ -3175,7 +3179,9 @@ private enum BoostStrengthPreset: String, CaseIterable, Identifiable {
     case balanced = "Balanced"
     case strong = "Strong"
 
-    var id: String { self.rawValue }
+    var id: String {
+        self.rawValue
+    }
 
     var weight: Float {
         switch self {
@@ -3202,8 +3208,12 @@ private enum BoostStrengthPreset: String, CaseIterable, Identifiable {
     }
 
     static func nearest(for weight: Float) -> Self {
-        if weight < 8.5 { return .mild }
-        if weight > 11.5 { return .strong }
+        if weight < 8.5 {
+            return .mild
+        }
+        if weight > 11.5 {
+            return .strong
+        }
         return .balanced
     }
 }

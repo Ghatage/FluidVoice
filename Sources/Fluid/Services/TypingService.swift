@@ -73,10 +73,12 @@ final class TypingService {
         return !isSecureTextField && exactFocusIsActive
     }
 
-    // Logging toggle (off by default). Enable by setting env FLUID_TYPING_LOGS=1
-    // or UserDefaults bool for key "enableTypingLogs".
+    /// Logging toggle (off by default). Enable by setting env FLUID_TYPING_LOGS=1
+    /// or UserDefaults bool for key "enableTypingLogs".
     private static var isLoggingEnabled: Bool {
-        if let env = ProcessInfo.processInfo.environment["FLUID_TYPING_LOGS"], env == "1" { return true }
+        if let env = ProcessInfo.processInfo.environment["FLUID_TYPING_LOGS"], env == "1" {
+            return true
+        }
         return UserDefaults.standard.bool(forKey: "enableTypingLogs")
     }
 
@@ -758,7 +760,9 @@ final class TypingService {
         guard CFGetTypeID(focusedElementRef) == AXUIElementGetTypeID() else { return false }
 
         let currentElement = unsafeBitCast(focusedElementRef, to: AXUIElement.self)
-        if CFEqual(currentElement, expectedElement) { return true }
+        if CFEqual(currentElement, expectedElement) {
+            return true
+        }
 
         var currentPID: pid_t = 0
         AXUIElementGetPid(currentElement, &currentPID)
@@ -1115,7 +1119,9 @@ final class TypingService {
     }
 
     private func findTextElementRecursively(_ element: AXUIElement, depth: Int, maxDepth: Int) -> AXUIElement? {
-        if depth > maxDepth { return nil }
+        if depth > maxDepth {
+            return nil
+        }
 
         // Check if this element is a text input element
         if let role = getElementAttribute(element, kAXRoleAttribute as CFString) {
@@ -1386,7 +1392,7 @@ final class TypingService {
         return true
     }
 
-    // Why is it working now? And why is it not working now?
+    /// Why is it working now? And why is it not working now?
     private func setTextViaValue(_ element: AXUIElement, _ text: String) -> Bool {
         let cfText = text as CFString
         let result = AXUIElementSetAttributeValue(element, kAXValueAttribute as CFString, cfText)

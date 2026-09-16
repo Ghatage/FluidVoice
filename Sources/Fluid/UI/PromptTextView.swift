@@ -55,10 +55,14 @@ struct PromptTextView: NSViewRepresentable {
             textView.selectedRanges = selectedRanges
         }
 
-        if textView.isEditable != self.isEditable { textView.isEditable = self.isEditable }
+        if textView.isEditable != self.isEditable {
+            textView.isEditable = self.isEditable
+        }
         textView.isSelectable = true
         textView.drawsBackground = false
-        if textView.font != self.font { textView.font = self.font }
+        if textView.font != self.font {
+            textView.font = self.font
+        }
         if textView.textContainerInset != NSSize(width: self.contentInset, height: self.contentInset) {
             textView.textContainerInset = NSSize(width: self.contentInset, height: self.contentInset)
         }

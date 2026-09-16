@@ -8,7 +8,9 @@ final class VoiceEngineSettingsViewModel: ObservableObject {
     private let appServices: AppServices
     private var cancellables = Set<AnyCancellable>()
 
-    var asr: ASRService { self.appServices.asr }
+    var asr: ASRService {
+        self.appServices.asr
+    }
 
     var areSpeechModelActionsBlocked: Bool {
         self.asr.isRunning

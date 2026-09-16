@@ -26,9 +26,13 @@ final nonisolated class BoundedAudioHardwareQueue: @unchecked Sendable {
         private let lock = NSLock()
         private var cancelled = false
 
-        var isCancelled: Bool { self.lock.withLock { self.cancelled } }
+        var isCancelled: Bool {
+            self.lock.withLock { self.cancelled }
+        }
 
-        func cancel() { self.lock.withLock { self.cancelled = true } }
+        func cancel() {
+            self.lock.withLock { self.cancelled = true }
+        }
     }
 
     private struct Pending {
@@ -61,8 +65,12 @@ final nonisolated class BoundedAudioHardwareQueue: @unchecked Sendable {
 
     func checkAvailable() throws {
         try self.lock.withLock {
-            if self.cleanupFailed { throw Failure.cleanupFailed }
-            if self.recovering { throw Failure.recovering }
+            if self.cleanupFailed {
+                throw Failure.cleanupFailed
+            }
+            if self.recovering {
+                throw Failure.recovering
+            }
         }
     }
 
@@ -77,7 +85,9 @@ final nonisolated class BoundedAudioHardwareQueue: @unchecked Sendable {
             self.cleanupFailed = false
             return true
         }
-        if cleared { self.resumeAvailabilityWaitersIfReady() }
+        if cleared {
+            self.resumeAvailabilityWaitersIfReady()
+        }
         return cleared
     }
 
@@ -219,7 +229,9 @@ final nonisolated class BoundedAudioHardwareQueue: @unchecked Sendable {
                 self.cleanupFailed = recovered == false
                 self.recovering = false
             }
-            if recovered { self.resumeAvailabilityWaitersIfReady() }
+            if recovered {
+                self.resumeAvailabilityWaitersIfReady()
+            }
         }
         self.lock.unlock()
         for request in requests {

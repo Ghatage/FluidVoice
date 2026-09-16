@@ -26,8 +26,12 @@ nonisolated struct StatsSnapshot: Sendable {
 
     func formattedTimeSaved(typingWPM: Int) -> String {
         let minutes = typingWPM > 0 ? max(0, Double(self.totalWords) / Double(typingWPM) - Double(self.totalWords) / 150) : 0
-        if minutes < 1 { return "< 1m" }
-        if minutes < 60 { return "\(Int(minutes))m" }
+        if minutes < 1 {
+            return "< 1m"
+        }
+        if minutes < 60 {
+            return "\(Int(minutes))m"
+        }
         let hours = Int(minutes) / 60
         let remainder = Int(minutes) % 60
         return remainder == 0 ? "\(hours)h" : "\(hours)h \(remainder)m"
@@ -80,7 +84,9 @@ nonisolated struct StatsSnapshot: Sendable {
         var hours = Array(repeating: 0, count: 24)
         result.totalTranscriptions = entries.count
         for (index, entry) in entries.enumerated() {
-            if index.isMultiple(of: 128) { try Task.checkCancellation() }
+            if index.isMultiple(of: 128) {
+                try Task.checkCancellation()
+            }
             let words = entry.processedText.components(separatedBy: .whitespacesAndNewlines).lazy.filter { !$0.isEmpty }.count
             let day = calendar.startOfDay(for: entry.timestamp)
             dayWords[day, default: 0] += words
@@ -89,7 +95,9 @@ nonisolated struct StatsSnapshot: Sendable {
             hours[calendar.component(.hour, from: entry.timestamp)] += 1
             result.totalWords += words
             result.longestTranscriptionWords = max(result.longestTranscriptionWords, words)
-            if entry.wasAIProcessed { result.aiProcessedCount += 1 }
+            if entry.wasAIProcessed {
+                result.aiProcessedCount += 1
+            }
         }
         try Task.checkCancellation()
         result.mostWordsInDay = dayWords.values.max() ?? 0
@@ -121,7 +129,9 @@ nonisolated struct StatsSnapshot: Sendable {
         var date = day
         for _ in 0..<7 {
             guard let previous = calendar.date(byAdding: .day, value: -1, to: date) else { return nil }
-            if !weekdays || !calendar.isDateInWeekend(previous) { return previous }
+            if !weekdays || !calendar.isDateInWeekend(previous) {
+                return previous
+            }
             date = previous
         }
         return nil
@@ -138,10 +148,14 @@ nonisolated struct StatsSnapshot: Sendable {
         var best = 1
         var initial = true
         for index in 1..<days.count {
-            if index.isMultiple(of: 128) { try Task.checkCancellation() }
+            if index.isMultiple(of: 128) {
+                try Task.checkCancellation()
+            }
             if days[index] == Self.previousDay(days[index - 1], calendar: calendar, weekdays: weekdays) {
                 run += 1
-                if initial { initialRun += 1 }
+                if initial {
+                    initialRun += 1
+                }
             } else {
                 initial = false
                 run = 1

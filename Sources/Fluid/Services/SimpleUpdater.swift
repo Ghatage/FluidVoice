@@ -76,20 +76,34 @@ private struct SemanticVersion: Comparable {
     let prerelease: [Identifier]
 
     static func < (lhs: SemanticVersion, rhs: SemanticVersion) -> Bool {
-        if lhs.major != rhs.major { return lhs.major < rhs.major }
-        if lhs.minor != rhs.minor { return lhs.minor < rhs.minor }
-        if lhs.patch != rhs.patch { return lhs.patch < rhs.patch }
+        if lhs.major != rhs.major {
+            return lhs.major < rhs.major
+        }
+        if lhs.minor != rhs.minor {
+            return lhs.minor < rhs.minor
+        }
+        if lhs.patch != rhs.patch {
+            return lhs.patch < rhs.patch
+        }
 
         // Stable release has higher precedence than prerelease for same core version.
-        if lhs.prerelease.isEmpty && rhs.prerelease.isEmpty { return false }
-        if lhs.prerelease.isEmpty { return false }
-        if rhs.prerelease.isEmpty { return true }
+        if lhs.prerelease.isEmpty && rhs.prerelease.isEmpty {
+            return false
+        }
+        if lhs.prerelease.isEmpty {
+            return false
+        }
+        if rhs.prerelease.isEmpty {
+            return true
+        }
 
         let count = min(lhs.prerelease.count, rhs.prerelease.count)
         for index in 0..<count {
             let left = lhs.prerelease[index]
             let right = rhs.prerelease[index]
-            if left == right { continue }
+            if left == right {
+                continue
+            }
 
             switch (left, right) {
             case let (.numeric(a), .numeric(b)):
@@ -245,8 +259,8 @@ final class SimpleUpdater {
         }
     }
 
-    // Allowed Apple Developer Team IDs for code-sign validation
-    // Restrict update transitions to FluidVoice's approved signing teams.
+    /// Allowed Apple Developer Team IDs for code-sign validation
+    /// Restrict update transitions to FluidVoice's approved signing teams.
     private let allowedTeamIDs: Set<String> = [
         "V4J43B279J",
         "537RRRT57V",
@@ -276,7 +290,7 @@ final class SimpleUpdater {
         return trimmed
     }
 
-    // Fetch latest release notes from GitHub
+    /// Fetch latest release notes from GitHub
     func fetchLatestReleaseNotes(
         owner: String,
         repo: String,
@@ -297,7 +311,7 @@ final class SimpleUpdater {
         return (version, notes)
     }
 
-    // Silent check that returns update info without showing alerts or installing
+    /// Silent check that returns update info without showing alerts or installing
     func checkForUpdate(
         owner: String,
         repo: String,

@@ -79,7 +79,9 @@ private enum SpokenPunctuationFormatter {
         case text(String)
 
         var normalizedWord: String? {
-            if case let .word(_, normalized) = self { return normalized }
+            if case let .word(_, normalized) = self {
+                return normalized
+            }
             return nil
         }
 
@@ -175,7 +177,9 @@ private enum SpokenPunctuationFormatter {
         let grouped = Dictionary(grouping: rules) { $0.words.first ?? "" }
         return grouped.mapValues {
             $0.sorted {
-                if $0.words.count != $1.words.count { return $0.words.count > $1.words.count }
+                if $0.words.count != $1.words.count {
+                    return $0.words.count > $1.words.count
+                }
                 return $0.words.joined(separator: " ").count > $1.words.joined(separator: " ").count
             }
         }
@@ -736,7 +740,9 @@ private enum SpokenPunctuationFormatter {
             if !tokens[cursor].isHorizontalWhitespaceText {
                 return cursor
             }
-            if cursor == 0 { break }
+            if cursor == 0 {
+                break
+            }
             cursor -= 1
         }
         return nil
@@ -801,7 +807,9 @@ private enum SpokenPunctuationFormatter {
 
     private static func removingGeneratedCommaNoise(from parts: [OutputPart]) -> [OutputPart] {
         guard parts.contains(where: { part in
-            if case let .punctuation(symbol, _) = part { return symbol == "," }
+            if case let .punctuation(symbol, _) = part {
+                return symbol == ","
+            }
             return false
         }) else {
             return parts
@@ -896,7 +904,9 @@ private enum SpokenPunctuationFormatter {
             if !parts[cursor].isHorizontalWhitespaceText {
                 return parts[cursor]
             }
-            if cursor == 0 { break }
+            if cursor == 0 {
+                break
+            }
             cursor -= 1
         }
         return nil

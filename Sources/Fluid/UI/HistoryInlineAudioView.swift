@@ -109,7 +109,9 @@ struct HistoryInlineAudioView: View {
         }
         .onDisappear {
             self.player?.pause()
-            if let timeObserver { self.player?.removeTimeObserver(timeObserver) }
+            if let timeObserver {
+                self.player?.removeTimeObserver(timeObserver)
+            }
             self.timeObserver = nil
             self.player?.replaceCurrentItem(with: nil)
             self.player = nil

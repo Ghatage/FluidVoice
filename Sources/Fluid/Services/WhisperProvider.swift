@@ -402,7 +402,9 @@ final class WhisperProvider: TranscriptionProvider {
                         source: "WhisperProvider"
                     )
                 } else {
-                    if isLastAttempt { throw error }
+                    if isLastAttempt {
+                        throw error
+                    }
                     DebugLogger.shared.warning(
                         "WhisperProvider: Download attempt \(attempt)/\(maxAttempts) failed (\(error.localizedDescription)). Retrying...",
                         source: "WhisperProvider"

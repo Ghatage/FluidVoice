@@ -133,7 +133,9 @@ final class KeychainService {
                 var dataItem: CFTypeRef?
                 let dataStatus = SecItemCopyMatching(dataQuery as CFDictionary, &dataItem)
                 guard dataStatus == errSecSuccess else {
-                    if dataStatus == errSecItemNotFound { continue }
+                    if dataStatus == errSecItemNotFound {
+                        continue
+                    }
                     throw KeychainServiceError.unhandled(dataStatus)
                 }
                 guard let data = dataItem as? Data,
@@ -172,13 +174,17 @@ final class KeychainService {
     // MARK: - Private helpers
 
     private func loadStoredKeys(forceRefresh: Bool = false) throws -> [String: String] {
-        if !forceRefresh, case let .loaded(keys) = self.cachedState() { return keys }
+        if !forceRefresh, case let .loaded(keys) = self.cachedState() {
+            return keys
+        }
 
         self.ioLock.lock()
         defer { self.ioLock.unlock() }
         // A concurrent cold read may have populated the cache while this caller
         // waited for I/O ownership. Forced refreshes intentionally bypass it.
-        if !forceRefresh, case let .loaded(keys) = self.cachedState() { return keys }
+        if !forceRefresh, case let .loaded(keys) = self.cachedState() {
+            return keys
+        }
 
         let keys = try self.readStoredKeys()
         self.setCachedKeys(keys)
@@ -202,7 +208,9 @@ final class KeychainService {
             guard let data = item as? Data else {
                 throw KeychainServiceError.invalidData
             }
-            if data.isEmpty { return [:] }
+            if data.isEmpty {
+                return [:]
+            }
             do {
                 return try JSONDecoder().decode([String: String].self, from: data)
             } catch {

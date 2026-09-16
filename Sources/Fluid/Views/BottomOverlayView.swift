@@ -1779,7 +1779,9 @@ private struct BottomOverlayPromptMenuView: View {
     private func restoreTypingTargetApp() {
         let pid = NotchContentState.shared.recordingTargetPID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            if let pid { _ = TypingService.activateApp(pid: pid) }
+            if let pid {
+                _ = TypingService.activateApp(pid: pid)
+            }
         }
     }
 }
@@ -2474,7 +2476,9 @@ struct BottomOverlayView: View {
     }
 
     private var promptSelectorFontSize: CGFloat {
-        if self.isCompactControls { return 10 }
+        if self.isCompactControls {
+            return 10
+        }
         return max(self.layout.modeFontSize - 1, 9)
     }
 
@@ -2567,7 +2571,9 @@ struct BottomOverlayView: View {
 
     private func previewResizeBucket(for previewText: String) -> Int {
         guard self.shouldReservePreviewArea else { return 0 }
-        if self.shouldShowAIProcessingFailure { return 1 }
+        if self.shouldShowAIProcessingFailure {
+            return 1
+        }
         let trimmed = previewText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return self.shouldShowProcessingStatus ? 1 : 0 }
 
@@ -2894,39 +2900,38 @@ struct BottomOverlayView: View {
         .accessibilityLabel("Select cleanup mode")
     }
 
+    @ViewBuilder
     private var promptSelectorView: some View {
-        Group {
-            if self.isPromptSelectableMode {
-                self.promptSelectorTrigger
-                    .background(
-                        PromptSelectorAnchorReader { frameInScreen, window in
-                            self.handlePromptSelectorFrameChange(frameInScreen, window: window)
-                        }
-                        .allowsHitTesting(false)
+        if self.isPromptSelectableMode {
+            self.promptSelectorTrigger
+                .background(
+                    PromptSelectorAnchorReader { frameInScreen, window in
+                        self.handlePromptSelectorFrameChange(frameInScreen, window: window)
+                    }
+                    .allowsHitTesting(false)
+                )
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    self.isHoveringPromptChip = hovering && !self.contentState.isProcessing
+                }
+                .onTapGesture {
+                    guard self.layout.showsTopControls, self.isPromptSelectableMode, !self.contentState.isProcessing else { return }
+                    self.closeModeMenu()
+                    self.closeActionsMenu()
+                    BottomOverlayPromptMenuController.shared.updateAnchor(
+                        selectorFrameInScreen: self.promptSelectorFrameInScreen,
+                        parentWindow: self.promptSelectorWindow,
+                        maxWidth: self.promptSelectorMaxWidth,
+                        menuGap: self.promptMenuGap
                     )
-                    .contentShape(Rectangle())
-                    .onHover { hovering in
-                        self.isHoveringPromptChip = hovering && !self.contentState.isProcessing
-                    }
-                    .onTapGesture {
-                        guard self.layout.showsTopControls, self.isPromptSelectableMode, !self.contentState.isProcessing else { return }
-                        self.closeModeMenu()
-                        self.closeActionsMenu()
-                        BottomOverlayPromptMenuController.shared.updateAnchor(
-                            selectorFrameInScreen: self.promptSelectorFrameInScreen,
-                            parentWindow: self.promptSelectorWindow,
-                            maxWidth: self.promptSelectorMaxWidth,
-                            menuGap: self.promptMenuGap
-                        )
-                        BottomOverlayPromptMenuController.shared.toggleFromTap()
-                    }
-            } else {
-                self.promptSelectorTrigger
-                    .opacity(0.6)
-                    .onHover { _ in
-                        self.isHoveringPromptChip = false
-                    }
-            }
+                    BottomOverlayPromptMenuController.shared.toggleFromTap()
+                }
+        } else {
+            self.promptSelectorTrigger
+                .opacity(0.6)
+                .onHover { _ in
+                    self.isHoveringPromptChip = false
+                }
         }
     }
 
@@ -3077,7 +3082,7 @@ struct BottomOverlayView: View {
             if let appIcon = appIcon {
                 Image(nsImage: appIcon)
                     .resizable()
-                    .aspectRatio(contentMode: .fit)
+                    .scaledToFit()
                     .frame(width: self.layout.iconSize, height: self.layout.iconSize)
                     .clipShape(RoundedRectangle(cornerRadius: self.layout.iconSize / 4))
             } else if !self.layout.showsModeLabel {
