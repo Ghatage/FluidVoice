@@ -681,7 +681,7 @@ struct NotchExpandedView: View {
         if let appIcon = self.contentState.targetAppIcon ?? self.activeAppMonitor.activeAppIcon {
             Image(nsImage: appIcon)
                 .resizable()
-                .scaledToFit()
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 18, height: 18)
                 .clipShape(RoundedRectangle(cornerRadius: 3))
         }
@@ -724,9 +724,7 @@ struct NotchExpandedView: View {
     private func restoreRecordingTargetFocus() {
         let pid = NotchContentState.shared.recordingTargetPID
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            if let pid {
-                _ = TypingService.activateApp(pid: pid)
-            }
+            if let pid { _ = TypingService.activateApp(pid: pid) }
         }
     }
 
@@ -758,6 +756,7 @@ struct NotchExpandedView: View {
             )
     }
 
+    @ViewBuilder
     private func promptMenuRow(
         _ title: String,
         rowID: String,
@@ -1185,6 +1184,7 @@ struct NotchWaveformView: View {
         }
     }
 
+    @ViewBuilder
     private func barsView(using height: @escaping (Int) -> CGFloat) -> some View {
         HStack(spacing: self.barSpacing) {
             ForEach(0..<self.barCount, id: \.self) { index in
@@ -1251,7 +1251,7 @@ struct NotchCompactLeadingView: View {
             if let appIcon = self.contentState.targetAppIcon ?? self.activeAppMonitor.activeAppIcon {
                 Image(nsImage: appIcon)
                     .resizable()
-                    .scaledToFit()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 16, height: 16)
                     .clipShape(RoundedRectangle(cornerRadius: 3))
             } else {
@@ -1914,6 +1914,7 @@ struct CompactNotchWaveformView: View {
         }
     }
 
+    @ViewBuilder
     private func barsView(using height: @escaping (Int) -> CGFloat) -> some View {
         HStack(spacing: self.barSpacing) {
             ForEach(0..<self.barCount, id: \.self) { index in

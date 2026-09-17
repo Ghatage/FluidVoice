@@ -125,11 +125,7 @@ extension AIEnhancementSettingsView {
         }
         .sheet(isPresented: Binding(
             get: { self.managedExternalProviderID != nil },
-            set: {
-                if !$0 {
-                    self.closeExternalProviderManager()
-                }
-            }
+            set: { if !$0 { self.closeExternalProviderManager() } }
         )) {
             self.externalProviderManager.appTheme(self.theme)
         }
@@ -139,9 +135,7 @@ extension AIEnhancementSettingsView {
         guard !self.viewModel.isFetchingModels, !self.viewModel.isTestingConnection else { return }
         if let providerID = self.managedExternalProviderID,
            !self.viewModel.saveManagedProviderBeforeClosing(providerID)
-        {
-            return
-        }
+        { return }
         self.viewModel.clearEditProviderDraft()
         self.viewModel.showingAddModel = false
         self.viewModel.newModelName = ""
@@ -181,9 +175,7 @@ extension AIEnhancementSettingsView {
             Text("This removes its saved API key and model setup, and clears any default or prompt assignments using it. Your prompts and shortcuts are kept. You can add the provider again later.")
         }
         .onChange(of: self.viewModel.cachedProviderItems.map(\.id)) { _, ids in
-            if let id = self.managedExternalProviderID, !ids.contains(id) {
-                self.closeExternalProviderManager()
-            }
+            if let id = self.managedExternalProviderID, !ids.contains(id) { self.closeExternalProviderManager() }
         }
     }
 
@@ -289,9 +281,7 @@ extension AIEnhancementSettingsView {
                 .buttonStyle(.plain)
             }
 
-            if self.viewModel.showHelp {
-                self.helpSectionView
-            }
+            if self.viewModel.showHelp { self.helpSectionView }
 
             self.providerStepContent
         }
@@ -564,7 +554,7 @@ extension AIEnhancementSettingsView {
         let color: Color
     }
 
-    /// Use cached provider items from ViewModel for scroll performance
+    // Use cached provider items from ViewModel for scroll performance
     private var verifiedProviderItems: [ProviderItem] {
         self.viewModel.cachedVerifiedProviderItems.filter {
             !PrivateAIProviderFeature.shared.isAvailable || $0.id != PrivateAIProviderFeature.shared.providerID
@@ -583,6 +573,7 @@ extension AIEnhancementSettingsView {
 
     /// Shared companion button for provider picker rows — identical size/style everywhere.
     /// Uses a fixed square frame so icon-only buttons don't get horizontal padding from CompactButtonStyle.
+    @ViewBuilder
     func companionIconButton(
         systemName: String,
         help: String,
@@ -598,6 +589,7 @@ extension AIEnhancementSettingsView {
     }
 
     /// Shared companion button with loading state — for refresh buttons.
+    @ViewBuilder
     func companionIconButton(
         isRefreshing: Bool,
         disabled: Bool = false,
@@ -1478,9 +1470,7 @@ extension AIEnhancementSettingsView {
     private func uniqueCustomProviderName() -> String {
         let base = "Custom Provider"
         let existing = Set(self.viewModel.savedProviders.map { $0.name.lowercased() })
-        if !existing.contains(base.lowercased()) {
-            return base
-        }
+        if !existing.contains(base.lowercased()) { return base }
         var index = 2
         while existing.contains("\(base) \(index)".lowercased()) {
             index += 1
@@ -1833,8 +1823,8 @@ extension AIEnhancementSettingsView {
         self.viewModel.connectionStatus = self.viewModel.connectionStatus(for: providerID)
     }
 
-    /// Match the main shortcut's routing without reading API keys or resolving an
-    /// app-specific override in the view. Merely opening Manage never selects it.
+    // Match the main shortcut's routing without reading API keys or resolving an
+    // app-specific override in the view. Merely opening Manage never selects it.
     private var primaryDefaultProviderID: String {
         let selection = self.viewModel.dictationPromptSelection(for: .primary)
         return DictationDefaultProvider.providerID(
@@ -2045,9 +2035,7 @@ extension AIEnhancementSettingsView {
                 if isVerified {
                     Button {
                         self.privateAIController.resetPrivateAIVerification(for: model)
-                        if onDone == nil {
-                            self.viewModel.clearEditProviderDraft()
-                        }
+                        if onDone == nil { self.viewModel.clearEditProviderDraft() }
                     } label: {
                         HStack(spacing: 5) {
                             Image(systemName: "arrow.counterclockwise")
@@ -2062,9 +2050,7 @@ extension AIEnhancementSettingsView {
                 if canDelete {
                     Button(role: .destructive) {
                         self.privateAIController.deletePrivateAIModel(model)
-                        if onDone == nil {
-                            self.viewModel.clearEditProviderDraft()
-                        }
+                        if onDone == nil { self.viewModel.clearEditProviderDraft() }
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "trash")

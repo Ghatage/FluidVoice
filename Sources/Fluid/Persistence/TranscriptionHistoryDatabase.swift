@@ -16,9 +16,7 @@ final class TranscriptionHistoryDatabase {
         let status = sqlite3_open_v2(url.path, &handle, SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_FULLMUTEX, nil)
         guard status == SQLITE_OK, let handle else {
             let message = handle.map { String(cString: sqlite3_errmsg($0)) } ?? "Could not open history."
-            if let handle {
-                sqlite3_close(handle)
-            }
+            if let handle { sqlite3_close(handle) }
             throw NSError(domain: "HistoryDatabase", code: Int(status), userInfo: [NSLocalizedDescriptionKey: message])
         }
         self.connection = handle
@@ -63,9 +61,7 @@ final class TranscriptionHistoryDatabase {
         var records: [Record] = []
         while true {
             let result = sqlite3_step(statement)
-            if result == SQLITE_DONE {
-                return records
-            }
+            if result == SQLITE_DONE { return records }
             guard result == SQLITE_ROW,
                   let text = sqlite3_column_text(statement, 0),
                   let id = UUID(uuidString: String(cString: text)),
@@ -77,9 +73,7 @@ final class TranscriptionHistoryDatabase {
 
     func write(upserts: [Record], deletes: [UUID], replacing: Bool) throws {
         try self.transaction {
-            if replacing {
-                try self.execute("DELETE FROM history")
-            }
+            if replacing { try self.execute("DELETE FROM history") }
             for id in deletes {
                 // UUID's canonical representation contains no SQL metacharacters.
                 try self.execute("DELETE FROM history WHERE id='\(id.uuidString)'")
@@ -182,9 +176,7 @@ final class TranscriptionHistoryWriter: @unchecked Sendable {
                 }
                 let records = try upserts.map { try self.record($0) }
                 try database.write(upserts: records, deletes: deletes, replacing: replacing)
-                if replacing {
-                    self.writeError = nil
-                }
+                if replacing { self.writeError = nil }
                 let finishedAt = ProcessInfo.processInfo.systemUptime
                 DebugLogger.shared.info(
                     "HISTORY_BENCH t=\(finishedAt) background=true upserts=\(upserts.count) deletes=\(deletes.count) " +

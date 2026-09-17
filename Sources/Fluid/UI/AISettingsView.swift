@@ -30,30 +30,22 @@ enum PromptEditorMode: Identifiable, Equatable {
     }
 
     var isDefault: Bool {
-        if case .defaultPrompt = self {
-            return true
-        }
+        if case .defaultPrompt = self { return true }
         return false
     }
 
     var isPrivateAI: Bool {
-        if case .privateAI = self {
-            return true
-        }
+        if case .privateAI = self { return true }
         return false
     }
 
     var editingPromptID: String? {
-        if case let .edit(promptID) = self {
-            return promptID
-        }
+        if case let .edit(promptID) = self { return promptID }
         return nil
     }
 
     var isNewPrompt: Bool {
-        if case .newPrompt = self {
-            return true
-        }
+        if case .newPrompt = self { return true }
         return false
     }
 
@@ -72,9 +64,7 @@ enum ModelSortOption: String, CaseIterable, Identifiable {
     case accuracy = "Accuracy"
     case speed = "Speed"
 
-    var id: String {
-        self.rawValue
-    }
+    var id: String { self.rawValue }
 }
 
 enum SpeechProviderFilter: String, CaseIterable, Identifiable {
@@ -84,9 +74,7 @@ enum SpeechProviderFilter: String, CaseIterable, Identifiable {
     case cohere = "Cohere"
     case openai = "OpenAI"
 
-    var id: String {
-        self.rawValue
-    }
+    var id: String { self.rawValue }
 }
 
 enum AISettingsLayout {

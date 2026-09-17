@@ -826,21 +826,11 @@ final class GlobalHotkeyManager: NSObject {
 
     nonisolated static func modifierFlags(from flags: CGEventFlags) -> NSEvent.ModifierFlags {
         var modifiers: NSEvent.ModifierFlags = []
-        if flags.contains(.maskSecondaryFn) {
-            modifiers.insert(.function)
-        }
-        if flags.contains(.maskCommand) {
-            modifiers.insert(.command)
-        }
-        if flags.contains(.maskAlternate) {
-            modifiers.insert(.option)
-        }
-        if flags.contains(.maskControl) {
-            modifiers.insert(.control)
-        }
-        if flags.contains(.maskShift) {
-            modifiers.insert(.shift)
-        }
+        if flags.contains(.maskSecondaryFn) { modifiers.insert(.function) }
+        if flags.contains(.maskCommand) { modifiers.insert(.command) }
+        if flags.contains(.maskAlternate) { modifiers.insert(.option) }
+        if flags.contains(.maskControl) { modifiers.insert(.control) }
+        if flags.contains(.maskShift) { modifiers.insert(.shift) }
         return modifiers
     }
 
@@ -903,7 +893,7 @@ final class GlobalHotkeyManager: NSObject {
         DebugLogger.shared.info("Mouse observer tap enabled (listen-only)", source: "GlobalHotkeyManager")
     }
 
-    /// Filter tap, created only for the button families that have a shortcut.
+    // Filter tap, created only for the button families that have a shortcut.
     private func setupMouseShortcutTap(mouseButtons: Set<Int>) {
         self.finishInterruptedMouseShortcutPress(reason: "mouse shortcut tap rebuilt")
         self.cleanupMouseShortcutTap()
@@ -1257,9 +1247,7 @@ final class GlobalHotkeyManager: NSObject {
             }
 
             // Check prompt mode hotkey
-            if self.handlePromptModeKeyDown(keyCode: keyCode, modifiers: eventModifiers) {
-                return nil
-            }
+            if self.handlePromptModeKeyDown(keyCode: keyCode, modifiers: eventModifiers) { return nil }
 
             // Check command mode hotkey first
             if self.commandModeShortcutEnabled,
@@ -1375,9 +1363,7 @@ final class GlobalHotkeyManager: NSObject {
 
         case .keyUp:
             // Prompt mode key up (press and hold mode)
-            if self.handlePromptModeKeyUp(keyCode: keyCode) {
-                return nil
-            }
+            if self.handlePromptModeKeyUp(keyCode: keyCode) { return nil }
 
             // Command mode key up
             // Note: Only check keyCode, not modifiers - user may release modifier before/with main key
@@ -1460,18 +1446,12 @@ final class GlobalHotkeyManager: NSObject {
                     behavior: self.primaryModifierOnlyBehavior(for: shortcut),
                     keyCode: keyCode,
                     modifiers: eventModifiers
-                ) {
-                    return nil
-                }
+                ) { return nil }
             }
 
-            if self.handlePromptAssignmentFlagsChanged(keyCode: keyCode, modifiers: eventModifiers) {
-                return nil
-            }
+            if self.handlePromptAssignmentFlagsChanged(keyCode: keyCode, modifiers: eventModifiers) { return nil }
 
-            if self.handlePromptModeFlagsChanged(keyCode: keyCode, modifiers: eventModifiers) {
-                return nil
-            }
+            if self.handlePromptModeFlagsChanged(keyCode: keyCode, modifiers: eventModifiers) { return nil }
 
             if let commandModeShortcut = self.commandModeShortcut,
                self.handleModifierOnlyShortcutFlagsChanged(
@@ -1504,9 +1484,7 @@ final class GlobalHotkeyManager: NSObject {
                    keyCode: keyCode,
                    modifiers: eventModifiers
                )
-            {
-                return nil
-            }
+            { return nil }
 
             if self.handleModifierOnlyShortcutFlagsChanged(
                 behavior: .init(
@@ -1537,9 +1515,7 @@ final class GlobalHotkeyManager: NSObject {
                 ),
                 keyCode: keyCode,
                 modifiers: eventModifiers
-            ) {
-                return nil
-            }
+            ) { return nil }
 
         default:
             break

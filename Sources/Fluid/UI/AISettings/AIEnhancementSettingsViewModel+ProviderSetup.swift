@@ -59,9 +59,7 @@ extension AIEnhancementSettingsViewModel {
                 return false
             }
         }
-        if !builtIn {
-            self.savedProviders.append(provider)
-        }
+        if !builtIn { self.savedProviders.append(provider) }
         self.availableModelsByProvider[key] = models
         self.selectedModelByProvider[key] = models.first ?? ""
         var added = Set(UserDefaults.standard.stringArray(forKey: Self.addedProviderIDsKey) ?? [])

@@ -3,9 +3,7 @@ import CryptoKit
 import Foundation
 
 extension SettingsStore {
-    private var commandModeLinkedToGlobalKey: String {
-        "CommandModeLinkedToGlobal"
-    }
+    private var commandModeLinkedToGlobalKey: String { "CommandModeLinkedToGlobal" }
 
     var commandModeLinkedToGlobal: Bool {
         get {

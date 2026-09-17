@@ -193,9 +193,7 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
                 newKey = key.hasPrefix("custom:") ? key : "custom:\(key)"
             }
             let clean = Array(Set(models.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) })).sorted()
-            if !clean.isEmpty {
-                normalized[newKey] = clean
-            }
+            if !clean.isEmpty { normalized[newKey] = clean }
         }
         self.availableModelsByProvider = normalized
         self.settings.availableModelsByProvider = normalized
@@ -207,9 +205,7 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
             // Use ModelRepository to correctly identify ALL built-in providers
             let newKey: String = ModelRepository.shared.isBuiltIn(lower) ? lower :
                 (key.hasPrefix("custom:") ? key : "custom:\(key)")
-            if let list = normalized[newKey], list.contains(model) {
-                normalizedSel[newKey] = model
-            }
+            if let list = normalized[newKey], list.contains(model) { normalizedSel[newKey] = model }
         }
         self.selectedModelByProvider = normalizedSel
         self.settings.selectedModelByProvider = normalizedSel
@@ -256,13 +252,9 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
         guard !trimmed.isEmpty else { return "" }
 
         // Built-in providers use their ID directly
-        if ModelRepository.shared.isBuiltIn(trimmed) {
-            return trimmed
-        }
+        if ModelRepository.shared.isBuiltIn(trimmed) { return trimmed }
         // Custom providers get "custom:" prefix (if not already present)
-        if trimmed.hasPrefix("custom:") {
-            return trimmed
-        }
+        if trimmed.hasPrefix("custom:") { return trimmed }
         return "custom:\(trimmed)"
     }
 
@@ -383,8 +375,8 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
         let configuredModelID = PrivateAIIntegrationService.configuredModelID
         let fingerprint = self.privateAIFingerprint(for: currentModel.id)
 
-        /// Navigation may expose another settings owner while verification is awaiting the runtime.
-        /// Do not publish an old verification into a newly selected model/backend configuration.
+        // Navigation may expose another settings owner while verification is awaiting the runtime.
+        // Do not publish an old verification into a newly selected model/backend configuration.
         func configurationIsCurrent() -> Bool {
             PrivateAIIntegrationService.configuredModelID == configuredModelID
                 && self.privateAIFingerprint(for: currentModel.id) == fingerprint
@@ -603,12 +595,8 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
 
     func updateCurrentProvider() {
         let url = self.openAIBaseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-        if url.contains("openai.com") {
-            self.currentProvider = "openai"; return
-        }
-        if url.contains("groq.com") {
-            self.currentProvider = "groq"; return
-        }
+        if url.contains("openai.com") { self.currentProvider = "openai"; return }
+        if url.contains("groq.com") { self.currentProvider = "groq"; return }
         self.currentProvider = self.providerKey(for: self.selectedProviderID)
     }
 
@@ -1263,9 +1251,7 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
         let key = self.providerKey(for: self.selectedProviderID)
         var list = self.availableModelsByProvider[key] ?? self.availableModels
         list.removeAll { $0 == self.selectedModel }
-        if list.isEmpty {
-            list = ModelRepository.shared.defaultModels(for: key)
-        }
+        if list.isEmpty { list = ModelRepository.shared.defaultModels(for: key) }
         self.availableModelsByProvider[key] = list
         self.settings.availableModelsByProvider = self.availableModelsByProvider
 
@@ -1367,9 +1353,7 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
         let key = self.providerKey(for: providerID)
         let stored = (self.selectedModelByProvider[key] ?? "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
-        if !stored.isEmpty {
-            return stored
-        }
+        if !stored.isEmpty { return stored }
         if providerID == self.selectedProviderID {
             return self.selectedModel.trimmingCharacters(in: .whitespacesAndNewlines)
         }
@@ -1554,9 +1538,7 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
                 continue
             }
             guard let stored = self.settings.verifiedProviderFingerprints[key] else {
-                if statuses[providerID] == .success {
-                    statuses[providerID] = .unknown
-                }
+                if statuses[providerID] == .success { statuses[providerID] = .unknown }
                 continue
             }
             let baseURL = self.providerBaseURL(for: providerID)
@@ -2030,9 +2012,7 @@ final class AIEnhancementSettingsViewModel: ObservableObject {
         _ selection: SettingsStore.DictationPromptSelection,
         for slot: SettingsStore.DictationShortcutSlot
     ) -> Bool {
-        if slot == .secondary, !self.settings.promptModeShortcutEnabled {
-            return false
-        }
+        if slot == .secondary, !self.settings.promptModeShortcutEnabled { return false }
         return self.settings.dictationPromptSelection(for: slot) == selection
     }
 

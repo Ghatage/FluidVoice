@@ -90,7 +90,7 @@ struct TalkingAudioVisualizationView: View {
     @StateObject private var data: AudioVisualizationData
     @State private var dynamicNoiseThreshold: CGFloat = .init(SettingsStore.shared.visualizerNoiseThreshold)
 
-    /// Dynamic config that updates with settings
+    // Dynamic config that updates with settings
     private var config: TalkingAnimationConfig {
         TalkingAnimationConfig(noiseThreshold: self.dynamicNoiseThreshold)
     }
@@ -170,9 +170,7 @@ struct SpokenlyWaveform: View {
         // Adaptive frame limiting - reduce rate during active processing to prevent CoreML conflicts
         let targetFPS: Double = self.isActive ? 30.0 : 20.0 // Lower FPS to reduce state update conflicts
         let frameTime = 1.0 / targetFPS
-        if currentTime - self.lastUpdateTime < frameTime {
-            return
-        }
+        if currentTime - self.lastUpdateTime < frameTime { return }
         self.lastUpdateTime = currentTime
 
         // Safety check
@@ -231,7 +229,7 @@ struct EnhancedTalkingAudioVisualizationView: View {
     @StateObject private var data: AudioVisualizationData
     @State private var dynamicNoiseThreshold: CGFloat = .init(SettingsStore.shared.visualizerNoiseThreshold)
 
-    /// Dynamic config that updates with settings
+    // Dynamic config that updates with settings
     private var config: EnhancedTalkingAnimationConfig {
         EnhancedTalkingAnimationConfig(noiseThreshold: self.dynamicNoiseThreshold)
     }
@@ -281,9 +279,7 @@ struct PremiumTalkingParticle: View {
     }
 
     private var particleSize: CGFloat {
-        if !self.isActive {
-            return self.config.minParticleSize
-        }
+        if !self.isActive { return self.config.minParticleSize }
 
         let waveValue = sin(animationPhase + Double(self.index) * 0.8 + self.randomOffset)
         let normalizedWave = (waveValue + 1) / 2
@@ -294,9 +290,7 @@ struct PremiumTalkingParticle: View {
     }
 
     private var particleOpacity: Double {
-        if !self.isActive {
-            return self.config.baseOpacity
-        }
+        if !self.isActive { return self.config.baseOpacity }
         let opacityRange = self.config.maxOpacity - self.config.baseOpacity
         return self.config.baseOpacity + (opacityRange * Double(self.audioLevel))
     }
@@ -379,9 +373,7 @@ struct PremiumTalkingParticle: View {
         let currentTime = Date().timeIntervalSince1970
 
         // Simple frame limiting for consistent 30 FPS
-        if currentTime - self.lastParticleUpdateTime < 0.033 {
-            return
-        }
+        if currentTime - self.lastParticleUpdateTime < 0.033 { return }
         self.lastParticleUpdateTime = currentTime
 
         self.animationTrigger += 1

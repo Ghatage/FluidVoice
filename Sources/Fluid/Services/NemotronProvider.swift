@@ -28,23 +28,13 @@ final class NemotronProvider: TranscriptionProvider {
             }
         }
 
-        var repositoryName: String {
-            self.folderHint
-        }
+        var repositoryName: String { self.folderHint }
     }
 
-    var name: String {
-        self.mode.displayName
-    }
-
-    var isAvailable: Bool {
-        true
-    }
-
+    var name: String { self.mode.displayName }
+    var isAvailable: Bool { true }
     private(set) var isReady: Bool = false
-    var prefersNativeFileTranscription: Bool {
-        true
-    }
+    var prefersNativeFileTranscription: Bool { true }
 
     private let repositoryOwner = "BarathwajAnandan"
     private let repositoryRevision = "main"
@@ -72,13 +62,8 @@ final class NemotronProvider: TranscriptionProvider {
         UserDefaults.standard.bool(forKey: "ASRComponentProfilingEnabled")
     }
 
-    private var folderHint: String {
-        self.mode.folderHint
-    }
-
-    private var repositoryName: String {
-        self.mode.repositoryName
-    }
+    private var folderHint: String { self.mode.folderHint }
+    private var repositoryName: String { self.mode.repositoryName }
 
     init(mode: Mode = .offline) {
         self.mode = mode
@@ -625,18 +610,10 @@ final class NemotronProvider: TranscriptionProvider {
         }
     }
 
-    var name: String {
-        self.mode.displayName
-    }
-
-    var isAvailable: Bool {
-        false
-    }
-
+    var name: String { self.mode.displayName }
+    var isAvailable: Bool { false }
     private(set) var isReady: Bool = false
-    var prefersNativeFileTranscription: Bool {
-        false
-    }
+    var prefersNativeFileTranscription: Bool { false }
 
     private let mode: Mode
 
@@ -652,9 +629,7 @@ final class NemotronProvider: TranscriptionProvider {
         throw Self.makeError("Nemotron requires Apple Silicon.")
     }
 
-    func modelsExistOnDisk() -> Bool {
-        false
-    }
+    func modelsExistOnDisk() -> Bool { false }
 
     private static func makeError(_ description: String) -> NSError {
         NSError(domain: "NemotronProvider", code: -1, userInfo: [NSLocalizedDescriptionKey: description])

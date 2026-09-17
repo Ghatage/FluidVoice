@@ -9,7 +9,23 @@ struct FluidOnboardingLandingHero<Actions: View>: View {
     let accentTitle: String
     let firstDetail: String
     let secondDetail: String
-    @ViewBuilder let actions: Actions
+    let actions: Actions
+
+    init(
+        eyebrow: String,
+        title: String,
+        accentTitle: String,
+        firstDetail: String,
+        secondDetail: String,
+        @ViewBuilder actions: () -> Actions
+    ) {
+        self.eyebrow = eyebrow
+        self.title = title
+        self.accentTitle = accentTitle
+        self.firstDetail = firstDetail
+        self.secondDetail = secondDetail
+        self.actions = actions()
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -134,7 +150,7 @@ struct FluidOnboardingCompactAppIconMark: View {
         Image(nsImage: Self.appIconImage)
             .resizable()
             .interpolation(.high)
-            .scaledToFit()
+            .aspectRatio(contentMode: .fit)
             .frame(width: self.size, height: self.size)
             .shadow(color: FluidOnboardingLandingColors.blue.opacity(0.45), radius: 24, x: 0, y: 0)
             .shadow(color: Color.black.opacity(0.42), radius: 14, x: 0, y: 9)
@@ -176,9 +192,7 @@ struct FluidOnboardingLandingHoverTracker: NSViewRepresentable {
         weak var coordinator: Coordinator?
         private var trackingArea: NSTrackingArea?
 
-        override var isFlipped: Bool {
-            true
-        }
+        override var isFlipped: Bool { true }
 
         override func hitTest(_ point: NSPoint) -> NSView? {
             nil
@@ -373,7 +387,7 @@ private struct FluidOnboardingAppIconMark: View {
             Image(nsImage: Self.appIconImage)
                 .resizable()
                 .interpolation(.high)
-                .scaledToFit()
+                .aspectRatio(contentMode: .fit)
                 .frame(width: 116, height: 116)
                 .shadow(color: Color.black.opacity(0.56), radius: 20, x: 0, y: 15)
                 .shadow(color: FluidOnboardingLandingColors.blue.opacity(0.58), radius: 36, x: 0, y: 0)
@@ -476,6 +490,7 @@ private struct OnboardingProminentButtonModifier: ViewModifier {
     @Environment(\.theme) private var theme
     let controlSize: ControlSize?
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         if let controlSize {
             content
@@ -493,6 +508,7 @@ private struct OnboardingProminentButtonModifier: ViewModifier {
 private struct OnboardingSecondaryButtonModifier: ViewModifier {
     let controlSize: ControlSize?
 
+    @ViewBuilder
     func body(content: Content) -> some View {
         if let controlSize {
             content

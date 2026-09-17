@@ -8,9 +8,7 @@ struct ProviderDefaultButton: View {
     var body: some View {
         Button(action: self.action) {
             HStack(spacing: 6) {
-                if self.isCurrent {
-                    Image(systemName: "checkmark.circle.fill")
-                }
+                if self.isCurrent { Image(systemName: "checkmark.circle.fill") }
                 Text(self.isCurrent ? "Current default" : "Set as default")
             }
         }
@@ -40,7 +38,7 @@ private struct FluidGlassActionModifier: ViewModifier {
     let prominent: Bool
     let circular: Bool
 
-    func body(content: Content) -> some View {
+    @ViewBuilder func body(content: Content) -> some View {
         if #available(macOS 26, *), !self.reduceTransparency {
             if self.prominent {
                 content.buttonStyle(.glassProminent).tint(FluidBrandColors.blue)

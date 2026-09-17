@@ -9,23 +9,17 @@ enum PrivateAIModelLoadState: Equatable {
     case failed(modelID: String, message: String)
 
     func isLoading(_ modelID: String) -> Bool {
-        if case .loading(modelID) = self {
-            return true
-        }
+        if case .loading(modelID) = self { return true }
         return false
     }
 
     func isDownloading(_ modelID: String) -> Bool {
-        if case .downloading(modelID, _) = self {
-            return true
-        }
+        if case .downloading(modelID, _) = self { return true }
         return false
     }
 
     func isLoaded(_ modelID: String) -> Bool {
-        if case .loaded(modelID, _) = self {
-            return true
-        }
+        if case .loaded(modelID, _) = self { return true }
         return false
     }
 
@@ -57,24 +51,13 @@ enum PrivateAIModelLoadState: Equatable {
 final class PrivateAISettingsController: ObservableObject {
     let viewModel: AIEnhancementSettingsViewModel
 
-    private var settings: SettingsStore {
-        self.viewModel.settings
-    }
+    private var settings: SettingsStore { self.viewModel.settings }
 
     @Published private var session: PrivateAISettingsSession
 
-    var privateAISelectedModelID: String {
-        self.session.selectedModelID
-    }
-
-    var previewModelID: String {
-        self.session.previewModelID
-    }
-
-    var isBusy: Bool {
-        self.session.isBusy || self.viewModel.isTestingConnection
-    }
-
+    var privateAISelectedModelID: String { self.session.selectedModelID }
+    var previewModelID: String { self.session.previewModelID }
+    var isBusy: Bool { self.session.isBusy || self.viewModel.isTestingConnection }
     @Published var privateAILoadState: PrivateAIModelLoadState = .idle
     @Published var privateAIModelUpdateStatusByID: [String: PrivateAIModelUpdateStatus] = [:]
 
@@ -307,9 +290,7 @@ final class PrivateAISettingsController: ObservableObject {
 
     func refreshPrivateAILoadState() {
         guard !self.session.isBusy else { return }
-        if case .failed = self.privateAILoadState {
-            return
-        }
+        if case .failed = self.privateAILoadState { return }
         let revision = self.session.revision
         Task { @MainActor in
             let loaded = await PrivateAIIntegrationService.shared.loadedModelState()

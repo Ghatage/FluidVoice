@@ -24,21 +24,15 @@ final class StatsSnapshotStore: ObservableObject {
             self.task?.cancel()
             self.task = nil
             self.isUpdating = false
-            if entries.isEmpty {
-                self.snapshot = nil
-            }
-            if !self.owners.isEmpty {
-                self.refresh(entries: entries)
-            }
+            if entries.isEmpty { self.snapshot = nil }
+            if !self.owners.isEmpty { self.refresh(entries: entries) }
         }.store(in: &self.subscriptions)
 
         for name in [Notification.Name.NSCalendarDayChanged, .NSSystemTimeZoneDidChange, NSLocale.currentLocaleDidChangeNotification] {
             NotificationCenter.default.publisher(for: name).receive(on: DispatchQueue.main).sink { [weak self] _ in
                 guard let self else { return }
                 self.revision &+= 1
-                if !self.owners.isEmpty {
-                    self.refresh(entries: self.history.entries)
-                }
+                if !self.owners.isEmpty { self.refresh(entries: self.history.entries) }
             }.store(in: &self.subscriptions)
         }
         NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)

@@ -147,9 +147,7 @@ final class MediaPlaybackService {
                 return snapshot
             }
             guard self.canPause(sessionID) else { return nil }
-            if attempt < 3 {
-                await self.settle()
-            }
+            if attempt < 3 { await self.settle() }
         }
         return nil
     }
@@ -207,12 +205,8 @@ final class MediaPlaybackService {
                 return snapshot
             }
             guard self.session == nil else { return nil }
-            if self.isShuttingDown {
-                return nil
-            }
-            if attempt < 3 {
-                await self.settle()
-            }
+            if self.isShuttingDown { return nil }
+            if attempt < 3 { await self.settle() }
         }
         return nil
     }
@@ -223,9 +217,7 @@ final class MediaPlaybackService {
         // Read at most twice; never retry a playback command blindly. This checks
         // reported state, not rendered video: Netflix can disagree with its UI.
         for attempt in 1...2 {
-            if attempt > 1, self.isShuttingDown {
-                break
-            }
+            if attempt > 1, self.isShuttingDown { break }
             await self.settle()
             guard let observed = await self.query(context: "verify_\(context) attempt=\(attempt)") else {
                 continue
@@ -234,9 +226,7 @@ final class MediaPlaybackService {
                 self.log("verification_failed context=\(context) reason=player_or_item_changed")
                 return nil
             }
-            if observed.isPlaying == playing {
-                return observed
-            }
+            if observed.isPlaying == playing { return observed }
         }
         self.log("verification_failed context=\(context) reason=state_not_confirmed")
         return nil

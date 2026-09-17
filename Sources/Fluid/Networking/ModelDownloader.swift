@@ -160,9 +160,7 @@ final class HuggingFaceModelDownloader {
                 expected = try await self.headExpectedLength(relativePath: rel)
             }
             sizeByPath[rel] = expected
-            if expected > 0 {
-                totalBytes += expected
-            }
+            if expected > 0 { totalBytes += expected }
         }
 
         let totalHuman = Self.formatBytes(totalBytes)
@@ -398,9 +396,7 @@ final class HuggingFaceModelDownloader {
     }
 
     private static func isCancellationError(_ error: Error) -> Bool {
-        if error is CancellationError {
-            return true
-        }
+        if error is CancellationError { return true }
         let nsError = error as NSError
         return nsError.domain == NSURLErrorDomain && nsError.code == NSURLErrorCancelled
     }
@@ -612,15 +608,9 @@ final class HuggingFaceModelDownloader {
         let mb = kb * 1024
         let gb = mb * 1024
         let b = Double(bytes)
-        if b >= gb {
-            return String(format: "%.2f GB", b / gb)
-        }
-        if b >= mb {
-            return String(format: "%.2f MB", b / mb)
-        }
-        if b >= kb {
-            return String(format: "%.2f KB", b / kb)
-        }
+        if b >= gb { return String(format: "%.2f GB", b / gb) }
+        if b >= mb { return String(format: "%.2f MB", b / mb) }
+        if b >= kb { return String(format: "%.2f KB", b / kb) }
         return "\(bytes) B"
     }
 }
@@ -831,9 +821,7 @@ extension HuggingFaceModelDownloader {
         var vocabulary: [Int: String] = [:]
         vocabulary.reserveCapacity(raw.count)
         for (k, v) in raw {
-            if let idx = Int(k) {
-                vocabulary[idx] = v
-            }
+            if let idx = Int(k) { vocabulary[idx] = v }
         }
 
         DebugLogger.shared.debug("[ModelDL] Creating AsrModels", source: "ModelDownloader")

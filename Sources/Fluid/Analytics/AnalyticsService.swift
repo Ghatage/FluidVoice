@@ -500,9 +500,7 @@ private actor AnalyticsCore {
     }
 
     private func database(for context: AnalyticsContext) throws -> AnalyticsDatabase {
-        if let database {
-            return database
-        }
+        if let database { return database }
         let url = try self.databaseURL()
         let database = try AnalyticsDatabase(
             url: url,

@@ -111,9 +111,7 @@ final class SettingsStore: ObservableObject {
         case llama
         case mlx
 
-        var id: String {
-            self.rawValue
-        }
+        var id: String { self.rawValue }
 
         /// Default backend when no preference is stored.
         /// Apple Silicon → MLX (fastest Fluid-1 path). Intel → llama.cpp.
@@ -238,9 +236,7 @@ final class SettingsStore: ObservableObject {
         let uid: String
         var name: String
 
-        var id: String {
-            self.uid
-        }
+        var id: String { self.uid }
     }
 
     enum DictationPromptSelection: Equatable {
@@ -496,9 +492,7 @@ final class SettingsStore: ObservableObject {
     }
 
     func dictationPromptSelection(for slot: DictationShortcutSlot) -> DictationPromptSelection {
-        if self.isDictationPromptOff(for: slot) {
-            return .off
-        }
+        if self.isDictationPromptOff(for: slot) { return .off }
         if let promptID = self.selectedDictationPromptID(for: slot) {
             if promptID == PrivateAIProviderPromptFormat.promptSelectionID {
                 return PrivateAIProviderPromptFormat.isAvailable(settings: self) ? .privateAI : .default
@@ -654,10 +648,7 @@ final class SettingsStore: ObservableObject {
         switch mode.normalized {
         case .dictate:
             if self.selectedDictationPromptID == PrivateAIProviderPromptFormat.promptSelectionID,
-               !PrivateAIProviderPromptFormat.isAvailable(settings: self)
-            {
-                return nil
-            }
+               !PrivateAIProviderPromptFormat.isAvailable(settings: self) { return nil }
             return self.selectedDictationPromptID
         case .edit:
             return self.selectedEditPromptID
@@ -1300,9 +1291,7 @@ final class SettingsStore: ObservableObject {
             return promptText.replacingOccurrences(of: self.transcriptPlaceholder, with: transcript)
         }
         let trimmedPrompt = promptText.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmedPrompt.isEmpty {
-            return transcript
-        }
+        if trimmedPrompt.isEmpty { return transcript }
         return promptText + "\n\n" + transcript
     }
 
@@ -1437,9 +1426,7 @@ final class SettingsStore: ObservableObject {
     var showMainWindowAtLoginLaunch: Bool {
         get {
             let value = self.defaults.object(forKey: Keys.showMainWindowAtLoginLaunch)
-            if value == nil {
-                return true
-            }
+            if value == nil { return true }
             return self.defaults.bool(forKey: Keys.showMainWindowAtLoginLaunch)
         }
         set {
@@ -1471,9 +1458,7 @@ final class SettingsStore: ObservableObject {
     var shareDetailedAnalytics: Bool {
         get {
             let value = self.defaults.object(forKey: Keys.shareAnonymousAnalytics)
-            if value == nil {
-                return true
-            }
+            if value == nil { return true }
             return self.defaults.bool(forKey: Keys.shareAnonymousAnalytics)
         }
         set {
@@ -1509,9 +1494,7 @@ final class SettingsStore: ObservableObject {
     var enableDebugLogs: Bool {
         get {
             let value = self.defaults.object(forKey: Keys.enableDebugLogs)
-            if value == nil {
-                return true
-            }
+            if value == nil { return true }
             return self.defaults.bool(forKey: Keys.enableDebugLogs)
         }
         set {
@@ -1565,9 +1548,7 @@ final class SettingsStore: ObservableObject {
     func getAPIKey(for providerID: String) -> String? {
         let keys = self.providerAPIKeys
         // Try exact match first
-        if let key = keys[providerID] {
-            return key
-        }
+        if let key = keys[providerID] { return key }
 
         // Try canonical key format (custom:ID)
         let canonical = self.canonicalProviderKey(for: providerID)
@@ -1708,9 +1689,7 @@ final class SettingsStore: ObservableObject {
         set {
             objectWillChange.send()
             let sanitized = newValue.map { provider -> SavedProvider in
-                if provider.apiKey.isEmpty {
-                    return provider
-                }
+                if provider.apiKey.isEmpty { return provider }
                 return SavedProvider(
                     id: provider.id,
                     name: provider.name,
@@ -1900,9 +1879,7 @@ final class SettingsStore: ObservableObject {
     /// Direct Core Audio is the required capture backend. Legacy persisted
     /// preferences are intentionally ignored because AVAudioEngine can block or
     /// crash while audio devices are changing.
-    var experimentalDirectAudioCaptureEnabled: Bool {
-        true
-    }
+    var experimentalDirectAudioCaptureEnabled: Bool { true }
 
     var copyTranscriptionToClipboard: Bool {
         get { self.defaults.bool(forKey: Keys.copyTranscriptionToClipboard) }
@@ -2747,29 +2724,17 @@ final class SettingsStore: ObservableObject {
     }
 
     private func hasLegacyUsageSignals() -> Bool {
-        if self.defaults.object(forKey: Keys.playgroundUsed) != nil {
-            return true
-        }
-        if self.defaults.object(forKey: Keys.hotkeyShortcutKey) != nil {
-            return true
-        }
-        if self.defaults.object(forKey: Keys.primaryDictationShortcutsKey) != nil {
-            return true
-        }
+        if self.defaults.object(forKey: Keys.playgroundUsed) != nil { return true }
+        if self.defaults.object(forKey: Keys.hotkeyShortcutKey) != nil { return true }
+        if self.defaults.object(forKey: Keys.primaryDictationShortcutsKey) != nil { return true }
         if let rawSpeechModel = self.defaults.string(forKey: Keys.selectedSpeechModel),
            rawSpeechModel != SpeechModel.defaultModel.rawValue
         {
             return true
         }
-        if self.defaults.object(forKey: Keys.selectedProviderID) != nil {
-            return true
-        }
-        if self.defaults.object(forKey: Keys.customDictionaryEntries) != nil {
-            return true
-        }
-        if !self.savedProviders.isEmpty {
-            return true
-        }
+        if self.defaults.object(forKey: Keys.selectedProviderID) != nil { return true }
+        if self.defaults.object(forKey: Keys.customDictionaryEntries) != nil { return true }
+        if !self.savedProviders.isEmpty { return true }
         return false
     }
 
@@ -3115,9 +3080,7 @@ final class SettingsStore: ObservableObject {
     /// Covers reasoning models plus Anthropic models that have deprecated temperature
     /// (Opus 4.7+, Sonnet 5, Fable/Mythos 5 — Sonnet 4.6 and older still accept it).
     func isTemperatureUnsupported(_ model: String) -> Bool {
-        if self.isReasoningModel(model) {
-            return true
-        }
+        if self.isReasoningModel(model) { return true }
         // Normalize version separators so dotted IDs (e.g. OpenRouter's
         // anthropic/claude-opus-4.8) match the hyphenated forms below.
         let modelLower = model.lowercased().replacingOccurrences(of: ".", with: "-")
@@ -4094,9 +4057,7 @@ final class SettingsStore: ObservableObject {
         let trimmed = rawValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !trimmed.isEmpty else { return "" }
         let providerID = trimmed
-        if ModelRepository.shared.isBuiltIn(providerID) {
-            return providerID
-        }
+        if ModelRepository.shared.isBuiltIn(providerID) { return providerID }
         if PrivateFeatures.privateAIProvider,
            providerID == PrivateAIProviderFeature.shared.providerID
         {
@@ -4239,9 +4200,7 @@ final class SettingsStore: ObservableObject {
         case tab
         case space
 
-        var id: Self {
-            self
-        }
+        var id: Self { self }
 
         var title: String {
             switch self {
@@ -4276,9 +4235,7 @@ final class SettingsStore: ObservableObject {
         var aliases: [String]
         var isEnabled: Bool
 
-        var id: SpokenFormattingAction {
-            self.action
-        }
+        var id: SpokenFormattingAction { self.action }
 
         init(action: SpokenFormattingAction, aliases: [String], isEnabled: Bool = true) {
             self.action = action
@@ -4636,9 +4593,7 @@ final class SettingsStore: ObservableObject {
         case second = 2
         case third = 3
 
-        var id: Int {
-            self.rawValue
-        }
+        var id: Int { self.rawValue }
 
         var displayName: String {
             switch self {

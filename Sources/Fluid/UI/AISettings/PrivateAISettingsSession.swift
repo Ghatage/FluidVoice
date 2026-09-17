@@ -11,9 +11,7 @@ enum PrivateAIModelCarouselNavigation {
     static func position(of id: String, in ids: [String], current: String) -> Int {
         guard let index = ids.firstIndex(of: id), !ids.isEmpty else { return 0 }
         let center = ids.firstIndex(of: current) ?? 0
-        if ids.count == 2 {
-            return index - center
-        }
+        if ids.count == 2 { return index - center }
         let distance = (index - center + ids.count) % ids.count
         return distance > ids.count / 2 ? distance - ids.count : distance
     }
@@ -26,9 +24,7 @@ struct PrivateAISettingsSession {
     private(set) var revision = UUID()
     private(set) var operationID: UUID?
 
-    var isBusy: Bool {
-        self.operationID != nil
-    }
+    var isBusy: Bool { self.operationID != nil }
 
     init(selectedModelID: String) {
         self.selectedModelID = selectedModelID

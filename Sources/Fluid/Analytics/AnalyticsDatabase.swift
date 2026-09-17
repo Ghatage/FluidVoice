@@ -52,9 +52,7 @@ final class AnalyticsDatabase {
         )
         guard result == SQLITE_OK, let database else {
             let message = database.map { String(cString: sqlite3_errmsg($0)) } ?? "unknown error"
-            if let database {
-                sqlite3_close(database)
-            }
+            if let database { sqlite3_close(database) }
             throw AnalyticsDatabaseError.open(message)
         }
         self.connection = database
@@ -864,14 +862,10 @@ final class AnalyticsDatabase {
         guard duration < 30 else { return "30s_plus" }
 
         let upperBound = max(0.5, ceil(duration * 2) / 2)
-        if upperBound == 0.5 {
-            return "500ms"
-        }
+        if upperBound == 0.5 { return "500ms" }
 
         let wholeSeconds = Int(upperBound)
-        if upperBound == Double(wholeSeconds) {
-            return "\(wholeSeconds)s"
-        }
+        if upperBound == Double(wholeSeconds) { return "\(wholeSeconds)s" }
         return "\(wholeSeconds)_5s"
     }
 

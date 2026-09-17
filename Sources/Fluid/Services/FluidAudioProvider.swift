@@ -800,14 +800,8 @@ final class FluidAudioProvider: TranscriptionProvider {
 /// Check-shim for Intel Macs where FluidAudio is not available
 final class FluidAudioProvider: TranscriptionProvider {
     let name = "FluidAudio (Apple Silicon ONLY)"
-    var isAvailable: Bool {
-        false
-    }
-
-    var isReady: Bool {
-        false
-    }
-
+    var isAvailable: Bool { false }
+    var isReady: Bool { false }
     private(set) var isWordBoostingActive: Bool = false
     private(set) var boostedVocabularyTermsCount: Int = 0
 

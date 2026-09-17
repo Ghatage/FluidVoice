@@ -71,49 +71,49 @@ struct MeetingTranscriptionView: View {
 
             // Main Content Area
             ScrollViewReader { proxy in
-                ScrollView {
-                    VStack(spacing: 24) {
-                        // File Selection Card
-                        self.fileSelectionCard
+            ScrollView {
+                VStack(spacing: 24) {
+                    // File Selection Card
+                    self.fileSelectionCard
 
-                        // Progress Card (only show when transcribing)
-                        if self.transcriptionService.isTranscribing {
-                            self.progressCard
-                        }
-
-                        // Results Card (only show when we have results)
-                        if let result = transcriptionService.result {
-                            self.resultsCard(result: result)
-                        }
-
-                        // Error Card (only show when we have an error)
-                        if let error = transcriptionService.error {
-                            self.errorCard(error: error)
-                        }
-
-                        // Drop error (unsupported file type)
-                        if let message = self.dropErrorMessage {
-                            self.dropErrorCard(message: message)
-                        }
-
-                        // Recent transcriptions (persisted history)
-                        if !self.fileHistoryStore.entries.isEmpty {
-                            Divider()
-                                .padding(.vertical, 8)
-                            self.recentTranscriptionsSection
-                        }
+                    // Progress Card (only show when transcribing)
+                    if self.transcriptionService.isTranscribing {
+                        self.progressCard
                     }
-                    .padding(24)
+
+                    // Results Card (only show when we have results)
+                    if let result = transcriptionService.result {
+                        self.resultsCard(result: result)
+                    }
+
+                    // Error Card (only show when we have an error)
+                    if let error = transcriptionService.error {
+                        self.errorCard(error: error)
+                    }
+
+                    // Drop error (unsupported file type)
+                    if let message = self.dropErrorMessage {
+                        self.dropErrorCard(message: message)
+                    }
+
+                    // Recent transcriptions (persisted history)
+                    if !self.fileHistoryStore.entries.isEmpty {
+                        Divider()
+                            .padding(.vertical, 8)
+                        self.recentTranscriptionsSection
+                    }
                 }
-                // A transcript chosen by search is scrolled to its expanded detail.
-                .onAppear {
-                    MeetingTranscriptionScrollTarget.selectedDetail(self.fileHistoryStore.selectedEntryID)
-                        .map { proxy.scrollTo($0) }
-                }
-                .onChange(of: self.fileHistoryStore.selectedEntryID) { _, id in
-                    MeetingTranscriptionScrollTarget.selectedDetail(id)
-                        .map { proxy.scrollTo($0) }
-                }
+                .padding(24)
+            }
+            // A transcript chosen by search is scrolled to its expanded detail.
+            .onAppear {
+                MeetingTranscriptionScrollTarget.selectedDetail(self.fileHistoryStore.selectedEntryID)
+                    .map { proxy.scrollTo($0) }
+            }
+            .onChange(of: self.fileHistoryStore.selectedEntryID) { _, id in
+                MeetingTranscriptionScrollTarget.selectedDetail(id)
+                    .map { proxy.scrollTo($0) }
+            }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

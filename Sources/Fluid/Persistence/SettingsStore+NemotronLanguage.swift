@@ -4,9 +4,7 @@ extension SettingsStore {
     struct NemotronLanguage: RawRepresentable, CaseIterable, Identifiable, Codable, Hashable {
         let rawValue: String
 
-        var id: String {
-            self.rawValue
-        }
+        var id: String { self.rawValue }
 
         nonisolated init(rawValue: String) {
             self.rawValue = rawValue

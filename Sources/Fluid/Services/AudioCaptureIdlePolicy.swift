@@ -143,12 +143,8 @@ enum AudioCaptureIdlePolicy {
         }
 
         for uid in priorityInputUIDs where excludedUIDs.contains(uid) == false {
-            if uid == resolvedInputUID {
-                return nil
-            }
-            if let candidate = settlingBluetoothDevice(uid: uid) {
-                return candidate
-            }
+            if uid == resolvedInputUID { return nil }
+            if let candidate = settlingBluetoothDevice(uid: uid) { return candidate }
         }
         guard let preferredInputUID,
               excludedUIDs.contains(preferredInputUID) == false,

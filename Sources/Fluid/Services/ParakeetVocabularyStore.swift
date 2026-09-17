@@ -220,7 +220,8 @@ final class ParakeetVocabularyStore {
                 .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .filter { !$0.isEmpty }
                 .filter { $0.caseInsensitiveCompare(text) != .orderedSame }
-            return Array(Set(normalized.map { $0.lowercased() })).sorted()
+            let deduped = Array(Set(normalized.map { $0.lowercased() })).sorted()
+            return deduped
         }
 
         func upsert(_ term: VocabularyConfig.Term) {

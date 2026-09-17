@@ -628,9 +628,7 @@ private struct AutomaticDictionaryCorrectionOverlayView: View {
     @State private var isDismissHovered = false
     @State private var progress: CGFloat = 1
 
-    private var accent: Color {
-        self.settings.accentColor
-    }
+    private var accent: Color { self.settings.accentColor }
 
     var body: some View {
         Group {

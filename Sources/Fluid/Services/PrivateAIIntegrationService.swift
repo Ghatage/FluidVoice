@@ -323,18 +323,9 @@ private struct PrivateAIModelRemovalError: LocalizedError {
 private struct UnavailableAIIntegrationShim: PrivateAIIntegrationProviding {
     static let shared = UnavailableAIIntegrationShim()
 
-    var configuredModelID: String {
-        PrivateAIModelRegistry.defaultModelID
-    }
-
-    var selectedModel: PrivateAIRegisteredModel {
-        PrivateAIModelRegistry.defaultModel
-    }
-
-    var configuredLocalModelPath: String? {
-        nil
-    }
-
+    var configuredModelID: String { PrivateAIModelRegistry.defaultModelID }
+    var selectedModel: PrivateAIRegisteredModel { PrivateAIModelRegistry.defaultModel }
+    var configuredLocalModelPath: String? { nil }
     var modelDirectoryURL: URL {
         FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)
             .first?
@@ -347,21 +338,14 @@ private struct UnavailableAIIntegrationShim: PrivateAIIntegrationProviding {
             .appendingPathComponent("Models", isDirectory: true)
     }
 
-    var isLocalRuntimeConfigured: Bool {
-        false
-    }
+    var isLocalRuntimeConfigured: Bool { false }
 
     func expectedLocalModelURL(for model: PrivateAIRegisteredModel) -> URL {
         PrivateAIModelRegistry.localModelURL(for: model, directoryURL: self.modelDirectoryURL)
     }
 
-    func localModelPath(for _: PrivateAIRegisteredModel) -> String? {
-        nil
-    }
-
-    func isModelInstalled(_: PrivateAIRegisteredModel) -> Bool {
-        false
-    }
+    func localModelPath(for _: PrivateAIRegisteredModel) -> String? { nil }
+    func isModelInstalled(_: PrivateAIRegisteredModel) -> Bool { false }
 
     func prepareModel(
         _: PrivateAIRegisteredModel,
@@ -370,9 +354,7 @@ private struct UnavailableAIIntegrationShim: PrivateAIIntegrationProviding {
         throw PrivateAIUnavailableError()
     }
 
-    func shouldHandleDictation(model _: String) -> Bool {
-        false
-    }
+    func shouldHandleDictation(model _: String) -> Bool { false }
 
     func status(for _: PrivateAIIntegrationService.RuntimeConfiguration) async -> PrivateAIStatus {
         PrivateAIStatus(
@@ -381,9 +363,7 @@ private struct UnavailableAIIntegrationShim: PrivateAIIntegrationProviding {
         )
     }
 
-    func loadedModelState() async -> PrivateAIIntegrationService.LoadedModelState? {
-        nil
-    }
+    func loadedModelState() async -> PrivateAIIntegrationService.LoadedModelState? { nil }
 
     func loadModel(_: PrivateAIRegisteredModel) async throws -> PrivateAIStatus {
         throw PrivateAIUnavailableError()

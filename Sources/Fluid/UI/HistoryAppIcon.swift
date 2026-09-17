@@ -8,9 +8,7 @@ private final class HistoryAppIconCache {
 
     private final class Result {
         let image: NSImage?
-        init(_ image: NSImage?) {
-            self.image = image
-        }
+        init(_ image: NSImage?) { self.image = image }
     }
 
     private let cache = NSCache<NSString, Result>()
@@ -23,12 +21,8 @@ private final class HistoryAppIconCache {
     func icon(for name: String) async -> NSImage? {
         let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !name.isEmpty else { return nil }
-        if let result = self.cache.object(forKey: name as NSString) {
-            return result.image
-        }
-        if let task = self.pending[name] {
-            return await task.value
-        }
+        if let result = self.cache.object(forKey: name as NSString) { return result.image }
+        if let task = self.pending[name] { return await task.value }
         guard self.pending.count < 48 else { return nil }
         let task = Task.detached(priority: .utility) { () -> NSImage? in
             guard let path = NSWorkspace.shared.fullPath(forApplication: name) else { return nil }

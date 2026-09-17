@@ -135,11 +135,7 @@ struct AddProviderSheet<Logo: View>: View {
                     .fluidGlassAction()
                 Spacer()
                 Button("Add Provider") {
-                    if self.viewModel.addProvider(self.draft) {
-                        self.dismiss()
-                    } else {
-                        self.saveFailed = true
-                    }
+                    if self.viewModel.addProvider(self.draft) { self.dismiss() } else { self.saveFailed = true }
                 }
                 .keyboardShortcut(.defaultAction)
                 .fluidGlassAction(prominent: true)
