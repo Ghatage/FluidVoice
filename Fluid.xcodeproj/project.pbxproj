@@ -731,7 +731,7 @@
 			repositoryURL = "https://github.com/zepdb/zeppelin-embed.git";
 			requirement = {
 				kind = exactVersion;
-				version = 0.3.0;
+				version = 0.4.1;
 			};
 		};
 		7C9A71002F58B00000FB7CAF /* XCRemoteSwiftPackageReference "transcribe-cpp-swift" */ = {
