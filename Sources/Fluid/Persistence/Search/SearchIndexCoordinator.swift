@@ -15,6 +15,7 @@ final class SearchIndexCoordinator {
 
     private var cancellables: Set<AnyCancellable> = []
     private var pending: [SearchIndexKind: Task<Void, Never>] = [:]
+    private var seeded: Set<SearchIndexKind> = []
     private let index: SearchIndex
 
     init(index: SearchIndex = .shared) {
@@ -23,25 +24,35 @@ final class SearchIndexCoordinator {
 
     func start(historyStore: TranscriptionHistoryStore = .shared) {
         guard self.cancellables.isEmpty else { return }
-        self.mirror(.history, historyStore.loadedEntriesPublisher.map { $0.map(\.searchRecord) })
+        // Results join the index against `TranscriptionHistoryStore.entries`, which is
+        // empty until the load finishes. A query typed before then finds nothing to
+        // join, and an index already equal to the loaded history reconciles to no
+        // change, so the first snapshot has to refresh on its own.
+        self.mirror(
+            .history,
+            historyStore.loadedEntriesPublisher.map { $0.map(\.searchRecord) },
+            refreshOnFirstSnapshot: true
+        )
         self.mirror(.transcripts, FileTranscriptionHistoryStore.shared.$entries.map { $0.map(\.searchRecord) })
         self.mirror(.chats, ChatHistoryStore.shared.$sessions.map { $0.compactMap(\.searchRecord) })
     }
 
     private func mirror<P: Publisher>(
         _ kind: SearchIndexKind,
-        _ records: P
+        _ records: P,
+        refreshOnFirstSnapshot: Bool = false
     ) where P.Output == [SearchIndexRecord], P.Failure == Never {
         records
             .debounce(for: .milliseconds(250), scheduler: DispatchQueue.main)
             .sink { [weak self] records in
                 guard let self else { return }
+                let isFirstSnapshot = self.seeded.insert(kind).inserted
                 let previous = self.pending[kind]
                 self.pending[kind] = Task { [index] in
                     await previous?.value
                     do {
                         let report = try await index.reconcile(kind, with: records)
-                        if report != SearchIndex.ReconcileReport() {
+                        if report != SearchIndex.ReconcileReport() || (refreshOnFirstSnapshot && isFirstSnapshot) {
                             AppSearchService.shared.refresh()
                         }
                     } catch {

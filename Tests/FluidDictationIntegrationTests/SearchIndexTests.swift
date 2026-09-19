@@ -356,6 +356,43 @@ final class SearchIndexCoordinatorTests: XCTestCase {
         }
     }
 
+    /// A restore can put different text under an id the index already holds. The
+    /// restored entry therefore has to carry a higher revision than the indexed one,
+    /// or reconcile keeps serving the text from before the restore.
+    func testRestoringDifferentTextUnderAnIndexedEntryReplacesIt() async throws {
+        try await self.withFixture { fixture in
+            let saved = self.entry("startup saved dictation")
+            try fixture.defaults.set(JSONEncoder().encode([saved]), forKey: "TranscriptionHistoryEntries")
+            try await fixture.index.reconcile(.history, with: [saved.searchRecord])
+            let history = TranscriptionHistoryStore(writer: fixture.writer, deleteAllAudioFiles: {})
+            let coordinator = SearchIndexCoordinator(index: fixture.index)
+            defer { withExtendedLifetime(coordinator) {} }
+            coordinator.start(historyStore: history)
+            try await history.waitUntilLoaded()
+
+            history.restore(from: [TranscriptionHistoryEntry(
+                id: saved.id,
+                timestamp: saved.timestamp,
+                rawText: "startup restored dictation",
+                processedText: "startup restored dictation",
+                appName: "Test",
+                windowTitle: "Test",
+                wasAIProcessed: false
+            )])
+
+            let deadline = ContinuousClock.now.advanced(by: .seconds(5))
+            var restored = try await fixture.index.query(.history, text: "restored", limit: 50).map(\.id)
+            while restored.isEmpty, ContinuousClock.now < deadline {
+                try await Task.sleep(for: .milliseconds(25))
+                restored = try await fixture.index.query(.history, text: "restored", limit: 50).map(\.id)
+            }
+            XCTAssertEqual(restored, [saved.id])
+            let stale = try await fixture.index.query(.history, text: "saved", limit: 50)
+            XCTAssertTrue(stale.isEmpty, "The text from before the restore must not survive in the index")
+            await history.finishPendingWrites()
+        }
+    }
+
     func testSubscribingAfterLoadingIndexesCurrentSnapshot() async throws {
         try await self.withFixture { fixture in
             let saved = self.entry("startup saved dictation")

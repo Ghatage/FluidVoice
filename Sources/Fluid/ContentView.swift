@@ -307,6 +307,9 @@ struct ContentView: View {
     @State private var settingsRevealTarget: SettingsSearchTarget?
     @ObservedObject private var appSearch = AppSearchService.shared
     @State private var appSearchCursor: AppSearchHit.Target?
+    /// A dictionary, vocabulary, punctuation or prompt row chosen from the sidebar
+    /// search. The screen it belongs to opens that row and clears this.
+    @State private var appSearchRevealTarget: AppSearchHit.Target?
     @State private var appSearchExpanded: Set<AppSearchKind> = []
 
     @State private var isHelpEntryHovered = false
@@ -1421,8 +1424,10 @@ struct ContentView: View {
             self.commandModeService.switchToChat(id: id)
             self.navigateToApp(.commandMode)
         case .dictionaryEntry, .vocabulary, .punctuation:
+            self.appSearchRevealTarget = hit.target
             self.navigateToApp(.customDictionary)
         case .prompt:
+            self.appSearchRevealTarget = hit.target
             self.navigateToApp(.cleanupStyles)
         case let .settings(target):
             self.openSettings(target.section)
@@ -1729,12 +1734,13 @@ struct ContentView: View {
                 theme: self.theme,
                 selectedConfigurationSection: self.aiEnhancementConfigurationSectionBinding,
                 activeShortcutRecordingTarget: self.$activeShortcutRecordingTarget,
-                shortcutRecordingMessage: self.$shortcutRecordingMessage
+                shortcutRecordingMessage: self.$shortcutRecordingMessage,
+                revealTarget: self.$appSearchRevealTarget
             ))
         case .meetingTools:
             return AnyView(self.meetingToolsView)
         case .customDictionary:
-            return AnyView(CustomDictionaryView())
+            return AnyView(CustomDictionaryView(revealTarget: self.$appSearchRevealTarget))
         case .stats:
             return AnyView(self.statsView)
         case .feedback:

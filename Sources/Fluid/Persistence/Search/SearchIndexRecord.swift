@@ -15,7 +15,8 @@ nonisolated enum SearchIndexKind: String, CaseIterable, Sendable {
 nonisolated struct SearchIndexRecord: Sendable, Equatable {
     let id: UUID
     /// Compared with what the namespace holds. A higher value re-indexes the row.
-    /// Immutable kinds use 1; chats use their update time.
+    /// Rows whose text never changes use 1; chats use their update time, and history
+    /// entries the revision a restore bumped.
     let revision: UInt64
     let timestamp: Date
     let text: String
@@ -41,9 +42,13 @@ extension TranscriptionHistoryEntry {
     /// What was pasted, plus where. Raw text is left out: the user remembers what
     /// landed in the document, and `processedText` is that text whether or not AI
     /// cleanup ran.
+    ///
+    /// An entry is immutable, so its revision only moves when a restore replaces the
+    /// id with different text; everything else stays at the revision it was indexed at.
     var searchRecord: SearchIndexRecord {
         SearchIndexRecord(
             id: self.id,
+            revision: self.searchRevision ?? 1,
             timestamp: self.timestamp,
             text: SearchIndexRecord.joined([self.processedText, self.appName, self.windowTitle])
         )
@@ -53,6 +58,10 @@ extension TranscriptionHistoryEntry {
 extension FileTranscriptionEntry {
     /// `text` only. When diarization ran, `text` is already the speaker segments
     /// joined together, so indexing both would count every word twice.
+    ///
+    /// Revision 1 is enough here: every transcription is stored under a fresh id, the
+    /// store only appends and deletes, and no backup restores these rows, so an id
+    /// never comes back with different text.
     var searchRecord: SearchIndexRecord {
         SearchIndexRecord(
             id: self.id,
